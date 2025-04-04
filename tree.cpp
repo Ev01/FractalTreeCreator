@@ -4,17 +4,30 @@
 #include "debug.h"
 
 void drawTreeRecursive(SDL_Renderer *renderer, double x, double y, double angle, 
-        const TreeSpecies &species, int maxDepth, int depth) {
+        const TreeSpecies &species, int maxDepth, unsigned int depth) {
 
     if (depth >= maxDepth) return;
     double length = species.baseBranchLen;
 
     double branchAngle, branchX, branchY;
     double newBranchSpread = species.branchSpread;
+    unsigned int depthFromTrunk = 0;
     if (depth > 0) {
-        newBranchSpread *= SDL_pow(species.angleIncreaseFactor, depth);
+        depthFromTrunk = depth - 1;
+        newBranchSpread *= SDL_pow(species.angleIncreaseFactor, depthFromTrunk);
         length *= SDL_pow(species.lengthIncreaseFactor, depth);
     }
+    else {
+        // Draw one branch when depth is 0. This is the trunk
+        branchX = x;
+        branchY = y - length;
+        drawTreeRecursive(renderer, branchX, branchY, angle, species, 
+                maxDepth, depth+1);
+        SDL_RenderLine(renderer, x, y, branchX, branchY);
+        Debug_incDrawCalls();
+        return;
+    }
+    
 
     for (int i=0; i < species.numBranches; i++) {
         branchAngle = angle
