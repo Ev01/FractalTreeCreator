@@ -1,5 +1,6 @@
 #include <SDL3/SDL.h>
 #include "ui.h"
+#include "debug.h"
 
 #include "imgui/imgui.h"
 
@@ -41,3 +42,9 @@ void treeConfigWindow(TreeSpecies &species, int &depth) {
     ImGui::End();
 }
 
+void debugInfoWindow(double delta) {
+    ImGui::Begin("Debug");
+    ImGui::Text("FPS: %.2f", 1.0 / delta);
+    ImGui::Text("Draw calls: %d", (int)Debug_getDrawCalls());
+    ImGui::End();
+}

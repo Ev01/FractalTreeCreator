@@ -10,6 +10,7 @@ PRIVATE
     main.cpp
     tree.cpp
     ui.cpp
+    debug.cpp
     imgui/imgui.cpp
     imgui/imgui_demo.cpp
     imgui/imgui_draw.cpp

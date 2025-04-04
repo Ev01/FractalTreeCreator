@@ -1,6 +1,7 @@
 #include<SDL3/SDL.h>
 
 #include "tree.h"
+#include "debug.h"
 
 void drawTreeRecursive(SDL_Renderer *renderer, double x, double y, double angle, 
         const TreeSpecies &species, int maxDepth, int depth) {
@@ -24,6 +25,7 @@ void drawTreeRecursive(SDL_Renderer *renderer, double x, double y, double angle,
         drawTreeRecursive(renderer, branchX, branchY, branchAngle, species, 
                 maxDepth, depth+1+species.depthBiases[i]);
         SDL_RenderLine(renderer, x, y, branchX, branchY);
+        Debug_incDrawCalls();
     }
 }
 

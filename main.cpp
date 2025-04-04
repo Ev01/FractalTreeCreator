@@ -8,11 +8,13 @@
 
 #include "ui.h"
 #include "tree.h"
+#include "debug.h"
 
 SDL_Window *window;
 SDL_Renderer *renderer;
 
 
+double lastFrame, delta;
 
     
 
@@ -35,6 +37,8 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
     ImGui_ImplSDL3_InitForSDLRenderer(window, renderer);
     ImGui_ImplSDLRenderer3_Init(renderer);
 
+    lastFrame = SDL_NS_TO_SECONDS((double) SDL_GetTicksNS());
+
     return SDL_APP_CONTINUE;
 }
 
@@ -49,13 +53,19 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
 
 
 SDL_AppResult SDL_AppIterate(void *appstate) {
+    delta = SDL_NS_TO_SECONDS((double) SDL_GetTicksNS()) - lastFrame;
+    lastFrame = SDL_NS_TO_SECONDS((double) SDL_GetTicksNS());
     ImGui_ImplSDLRenderer3_NewFrame();
     ImGui_ImplSDL3_NewFrame();
     ImGui::NewFrame();
 
+    debugInfoWindow(delta);
+    Debug_newFrame();
+
     static TreeSpecies species = {3, 0.3, 50, {0, 0, 0}, 1.0, 1.0};
     static int depth = 4;
     treeConfigWindow(species, depth);
+
 
     int windowWidth, windowHeight;
     SDL_GetWindowSize(window, &windowWidth, &windowHeight);
