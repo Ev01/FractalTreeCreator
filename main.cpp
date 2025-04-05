@@ -64,7 +64,8 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
 
     static TreeSpecies species = {3, 0.3, 50, {0, 0, 0}, 1.0, 1.0};
     static int depth = 4;
-    treeConfigWindow(species, depth);
+    static double sway = 0;
+    treeConfigWindow(species, depth, sway);
 
 
     int windowWidth, windowHeight;
@@ -83,7 +84,8 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
     SDL_RenderClear(renderer);
 
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-    drawTreeRecursive(renderer, treeX, treeY, SDL_PI_D / 2.0, species, depth);
+    drawTreeRecursive(renderer, treeX, treeY, SDL_PI_D / 2.0, species, 
+            sway, depth);
 
     ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData(), renderer);
 

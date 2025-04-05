@@ -4,7 +4,8 @@
 #include "debug.h"
 
 void drawTreeRecursive(SDL_Renderer *renderer, double x, double y, double angle, 
-        const TreeSpecies &species, int maxDepth, unsigned int depth) {
+        const TreeSpecies &species, double sway, 
+        int maxDepth, unsigned int depth) {
 
     SDL_assert(species.numBranches <= MAX_NUM_BRANCHES);
 
@@ -21,9 +22,11 @@ void drawTreeRecursive(SDL_Renderer *renderer, double x, double y, double angle,
     }
     else if (species.hasTrunk) {
         // Draw one branch when depth is 0. This is the trunk
-        branchX = x;
-        branchY = y - length;
-        drawTreeRecursive(renderer, branchX, branchY, angle, species, 
+        double swayAngleMod = sway;
+        angle += swayAngleMod;
+        branchX = x + SDL_cos(angle) * length;
+        branchY = y - SDL_sin(angle) * length;
+        drawTreeRecursive(renderer, branchX, branchY, angle, species, sway, 
                 maxDepth, depth+1);
         SDL_RenderLine(renderer, x, y, branchX, branchY);
         Debug_incDrawCalls();
@@ -35,10 +38,13 @@ void drawTreeRecursive(SDL_Renderer *renderer, double x, double y, double angle,
         branchLength = length * (species.lengthBiases[i] + 1);
         branchAngle = angle
             + newBranchSpread * ((double) i - (double)(species.numBranches-1) / 2);
-           // * ((double) i / species.numBranches - (double) species.numBranches / 2.0);
+
+        double swayAngleMod = SDL_sin(branchAngle) * sway;
+        branchAngle += swayAngleMod;
+
         branchX = x + SDL_cos(branchAngle) * branchLength;
         branchY = y - SDL_sin(branchAngle) * branchLength;
-        drawTreeRecursive(renderer, branchX, branchY, branchAngle, species, 
+        drawTreeRecursive(renderer, branchX, branchY, branchAngle, species, sway,
                 maxDepth, depth+1+species.depthBiases[i]);
         SDL_RenderLine(renderer, x, y, branchX, branchY);
         Debug_incDrawCalls();
