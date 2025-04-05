@@ -14,8 +14,12 @@ void treeConfigWindow(TreeSpecies &species, int &depth) {
 
     ImGui::SliderInt("Depth", &depth, 1, 8);
 
-    ImGui::SliderInt("Number of Branches", &species.numBranches, 1, 8, "%d", ImGuiSliderFlags_ClampOnInput);
+    ImGui::SliderInt("Number of Branches", &species.numBranches, 1, 8, 
+            "%d", ImGuiSliderFlags_ClampOnInput);
+
     static const double zero = 0.0;
+    static const double MIN_LENGTH_BIAS = -1.0;
+    static const double MAX_LENGTH_BIAS = 3.0;
     static const double spreadMax = 3.14159;
     static const double lengthMax = 200.0;
     ImGui::SliderScalar("Branch Spread", ImGuiDataType_Double, 
@@ -41,6 +45,15 @@ void treeConfigWindow(TreeSpecies &species, int &depth) {
         ImGui::SliderInt(label, species.depthBiases + i, 0, 10);
     }
 
+    ImGui::SeparatorText("Length Biases");
+    // Length Bias sliders
+    for (int i = 0; i < species.numBranches; i++) {
+        char label[20];
+        SDL_snprintf(label, sizeof(label), "Length Bias %i", i);
+        ImGui::SliderScalar(label, ImGuiDataType_Double, 
+                species.lengthBiases + i, 
+                &MIN_LENGTH_BIAS, &MAX_LENGTH_BIAS, "%.3f");
+    }
     ImGui::End();
 }
 

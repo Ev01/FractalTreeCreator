@@ -11,6 +11,7 @@ struct TreeSpecies {
     double angleIncreaseFactor = 1;
     double lengthIncreaseFactor = 1;
     bool hasTrunk = 1;
+    double lengthBiases[MAX_NUM_BRANCHES];
 };
 
 const TreeSpecies TEST_SPECIES = {3, 0.30, 50, {1, 0, 1}, 1.3, 0.9};

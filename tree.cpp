@@ -11,7 +11,7 @@ void drawTreeRecursive(SDL_Renderer *renderer, double x, double y, double angle,
     if (depth >= maxDepth) return;
     double length = species.baseBranchLen;
 
-    double branchAngle, branchX, branchY;
+    double branchLength, branchAngle, branchX, branchY;
     double newBranchSpread = species.branchSpread;
     unsigned int depthFromTrunk = 0;
     if (depth > 0) {
@@ -32,11 +32,12 @@ void drawTreeRecursive(SDL_Renderer *renderer, double x, double y, double angle,
     
 
     for (int i=0; i < species.numBranches; i++) {
+        branchLength = length * (species.lengthBiases[i] + 1);
         branchAngle = angle
             + newBranchSpread * ((double) i - (double)(species.numBranches-1) / 2);
            // * ((double) i / species.numBranches - (double) species.numBranches / 2.0);
-        branchX = x + SDL_cos(branchAngle) * length;
-        branchY = y - SDL_sin(branchAngle) * length;
+        branchX = x + SDL_cos(branchAngle) * branchLength;
+        branchY = y - SDL_sin(branchAngle) * branchLength;
         drawTreeRecursive(renderer, branchX, branchY, branchAngle, species, 
                 maxDepth, depth+1+species.depthBiases[i]);
         SDL_RenderLine(renderer, x, y, branchX, branchY);
