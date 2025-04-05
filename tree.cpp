@@ -17,7 +17,7 @@ void drawTreeRecursive(SDL_Renderer *renderer, double x, double y, double angle,
         newBranchSpread *= SDL_pow(species.angleIncreaseFactor, depthFromTrunk);
         length *= SDL_pow(species.lengthIncreaseFactor, depth);
     }
-    else {
+    else if (species.hasTrunk) {
         // Draw one branch when depth is 0. This is the trunk
         branchX = x;
         branchY = y - length;

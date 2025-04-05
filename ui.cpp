@@ -31,6 +31,8 @@ void treeConfigWindow(TreeSpecies &species, int &depth) {
             &species.lengthIncreaseFactor, &zero, &MAX_LENGTH_INCREASE_FACT, 
             "%.3f");
 
+    ImGui::Checkbox("Has Trunk", &species.hasTrunk);
+
     ImGui::SeparatorText("Depth Biases");
     // Depth Bias sliders
     for (int i = 0; i < species.numBranches; i++) {
