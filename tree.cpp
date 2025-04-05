@@ -6,6 +6,8 @@
 void drawTreeRecursive(SDL_Renderer *renderer, double x, double y, double angle, 
         const TreeSpecies &species, int maxDepth, unsigned int depth) {
 
+    SDL_assert(species.numBranches <= MAX_NUM_BRANCHES);
+
     if (depth >= maxDepth) return;
     double length = species.baseBranchLen;
 

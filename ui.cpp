@@ -14,7 +14,7 @@ void treeConfigWindow(TreeSpecies &species, int &depth) {
 
     ImGui::SliderInt("Depth", &depth, 1, 8);
 
-    ImGui::SliderInt("Number of Branches", &species.numBranches, 1, 8);
+    ImGui::SliderInt("Number of Branches", &species.numBranches, 1, 8, "%d", ImGuiSliderFlags_ClampOnInput);
     static const double zero = 0.0;
     static const double spreadMax = 3.14159;
     static const double lengthMax = 200.0;
