@@ -4,7 +4,9 @@
 
 #include "vendored/imgui/imgui.h"
 #include "vendored/imgui/imgui_impl_sdl3.h"
-#include "vendored/imgui/imgui_impl_sdlrenderer3.h"
+//#include "vendored/imgui/imgui_impl_sdlrenderer3.h"
+#include "vendored/imgui/imgui_impl_opengl3.h"
+#include "glad/glad.h"
 
 #include "ui.h"
 #include "tree.h"
@@ -13,16 +15,31 @@
 SDL_Window *window;
 SDL_Renderer *renderer;
 
+static SDL_GLContext context;
+
 
 double lastFrame, delta;
 
 
 SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
-    if (!SDL_CreateWindowAndRenderer(
-                "Fractal Tree", 800, 600, SDL_WINDOW_RESIZABLE, &window, &renderer)) {
-        SDL_Log("Couldn't create window and renderer: %s", SDL_GetError());
+
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+    int flags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE;
+    
+    window = SDL_CreateWindow("Fractal Tree", 800, 600, flags);
+    if (window == NULL) {
+        SDL_Log("Couldn't create window: %s", SDL_GetError());
+        return SDL_APP_FAILURE;
     }
-    SDL_SetRenderVSync(renderer, 1);
+
+    context = SDL_GL_CreateContext(window);
+
+    if (!gladLoadGLLoader((GLADloadproc)SDL_GL_GetProcAddress)) {
+        SDL_Log("Failed to initialise GLAD");
+        return SDL_APP_FAILURE;
+    }
 
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -31,9 +48,21 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
 
     ImGui::StyleColorsDark();
+    
+    ImGui_ImplSDL3_InitForOpenGL(window, &context);
+    ImGui_ImplOpenGL3_Init(nullptr);
+
+    /*
+    if (!SDL_CreateWindowAndRenderer(
+                "Fractal Tree", 800, 600, SDL_WINDOW_RESIZABLE, &window, &renderer)) {
+        SDL_Log("Couldn't create window and renderer: %s", SDL_GetError());
+    }
+    SDL_SetRenderVSync(renderer, 1);
+
 
     ImGui_ImplSDL3_InitForSDLRenderer(window, renderer);
     ImGui_ImplSDLRenderer3_Init(renderer);
+    */
 
     lastFrame = SDL_NS_TO_SECONDS((double) SDL_GetTicksNS());
 
@@ -53,12 +82,14 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
 SDL_AppResult SDL_AppIterate(void *appstate) {
     delta = SDL_NS_TO_SECONDS((double) SDL_GetTicksNS()) - lastFrame;
     lastFrame = SDL_NS_TO_SECONDS((double) SDL_GetTicksNS());
-    ImGui_ImplSDLRenderer3_NewFrame();
+    
+    ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplSDL3_NewFrame();
     ImGui::NewFrame();
 
-    debugInfoWindow(delta);
-    Debug_newFrame();
+    
+    //debugInfoWindow(delta);
+    //Debug_newFrame();
 
     static TreeSpecies species = {3, 0.3, 50, {0, 0, 0}, 1.0, 1.0};
     static int depth = 4;
@@ -78,23 +109,28 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
 
     ImGui::Render();
     
-    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-    SDL_RenderClear(renderer);
+    //SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+    //SDL_RenderClear(renderer);
 
-    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-    drawTreeRecursive(renderer, treeX, treeY, SDL_PI_D / 2.0, species, 
-            sway, depth);
+    //SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+    //drawTreeRecursive(renderer, treeX, treeY, SDL_PI_D / 2.0, species, 
+    //        sway, depth);
 
-    ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData(), renderer);
+    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT);
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-    SDL_RenderPresent(renderer);
+    //SDL_RenderPresent(renderer);
+    
+    SDL_GL_SwapWindow(window);
 
     return SDL_APP_CONTINUE;
 }
 
 
 void SDL_AppQuit(void *appstate, SDL_AppResult result) {
-    ImGui_ImplSDLRenderer3_Shutdown();
+    
+    ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplSDL3_Shutdown();
     ImGui::DestroyContext();
 }

@@ -27,8 +27,10 @@ PRIVATE
     vendored/imgui/imgui_draw.cpp
     vendored/imgui/imgui_impl_sdl3.cpp
     vendored/imgui/imgui_impl_sdlrenderer3.cpp
+    vendored/imgui/imgui_impl_opengl3.cpp
     vendored/imgui/imgui_tables.cpp
     vendored/imgui/imgui_widgets.cpp
+    glad/glad.c
 
 )
 
