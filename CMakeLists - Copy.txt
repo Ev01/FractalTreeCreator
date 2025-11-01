@@ -1,0 +1,26 @@
+cmake_minimum_required(VERSION 3.26)
+project(fractal_tree C CXX)
+
+find_package(SDL3 REQUIRED)
+
+
+add_executable(fractal_tree)
+
+target_sources(fractal_tree
+PRIVATE
+    main.cpp
+    tree.cpp
+    ui.cpp
+    debug.cpp
+    imgui/imgui.cpp
+    imgui/imgui_demo.cpp
+    imgui/imgui_draw.cpp
+    imgui/imgui_impl_sdl3.cpp
+    imgui/imgui_impl_sdlrenderer3.cpp
+    imgui/imgui_tables.cpp
+    imgui/imgui_widgets.cpp
+
+)
+set(SDL_STATIC ON CACHE INTERNAL "")
+
+target_link_libraries(fractal_tree SDL3::SDL3)

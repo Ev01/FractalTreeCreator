@@ -14,12 +14,31 @@ struct TreeSpecies {
     double lengthBiases[MAX_NUM_BRANCHES];
 };
 
+struct TreeSaveConfig {
+    TreeSpecies species;
+    int depth;
+    double sway;
+};
+
+
+struct TreeLoadConfig {
+    TreeSpecies *species;
+    int *depth;
+    double *sway;
+};
+
 const TreeSpecies TEST_SPECIES = {3, 0.30, 50, {1, 0, 1}, 1.3, 0.9};
 
 void drawTreeRecursive(SDL_Renderer *renderer, double x, double y, 
         double angle, const TreeSpecies &species, double sway=0, 
         int maxDepth=4, unsigned int depth=0);
 
+void saveConfig(const char *filename, const TreeSpecies &species, int depth, double sway);
+void loadConfig(TreeSpecies &species, int &depth, double &sway);
+void saveConfig2(const char *filename, const TreeSpecies &species, int depth, double sway);
+void loadConfig2(const char *filename, TreeLoadConfig *config);
 
+void saveCallback(void* userdata, const char * const *filelist, int filter);
+void loadCallback(void* userdata, const char * const *filelist, int filter);
 // void drawTreeToSurfRecursive(SDL_Surface &surface, double x, double y, 
 //        double angle, int maxDepth=5, int depth=0);

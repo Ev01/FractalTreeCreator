@@ -1,5 +1,6 @@
 #include <SDL3/SDL.h>
 #include "ui.h"
+#include "tree.h"
 #include "debug.h"
 
 #include "imgui/imgui.h"
@@ -9,7 +10,7 @@ const double MAX_LENGTH_INCREASE_FACT = 3.0;
 const double MIN_SWAY = -SDL_PI_D / 4.0;
 const double MAX_SWAY = SDL_PI_D / 4.0;
 
-void treeConfigWindow(TreeSpecies &species, int &depth, double &sway) {
+void treeConfigWindow(TreeSpecies &species, int &depth, double &sway, SDL_Window *window) {
     ImGui::Begin("Tree Config");
     ImGui::PushItemWidth(-165);
     ImGui::Text("Configure your own tree!!");
@@ -58,6 +59,27 @@ void treeConfigWindow(TreeSpecies &species, int &depth, double &sway) {
                 species.lengthBiases + i, 
                 &MIN_LENGTH_BIAS, &MAX_LENGTH_BIAS, "%.3f");
     }
+
+    if (ImGui::Button("Save")) {
+        TreeSaveConfig config = {species, depth, sway};
+        void *dest = SDL_malloc(sizeof(config));
+        SDL_memcpy(dest, &config, sizeof(config));
+        
+        SDL_ShowSaveFileDialog(saveCallback, dest, window, NULL, 0, NULL);
+        //saveConfig(species, depth, sway);
+    }
+    
+    ImGui::SameLine();
+    if (ImGui::Button("Load")) {
+        //loadConfig(species, depth, sway);
+        TreeLoadConfig config = {&species, &depth, &sway};
+        void *data = SDL_malloc(sizeof(config));
+        SDL_memcpy(data, &config, sizeof(config));
+
+        SDL_ShowOpenFileDialog(loadCallback, data, window, NULL, 0, NULL, false);
+    }
+    
+
     ImGui::End();
 }
 

@@ -65,7 +65,7 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
     static TreeSpecies species = {3, 0.3, 50, {0, 0, 0}, 1.0, 1.0};
     static int depth = 4;
     static double sway = 0;
-    treeConfigWindow(species, depth, sway);
+    treeConfigWindow(species, depth, sway, window);
 
 
     int windowWidth, windowHeight;
