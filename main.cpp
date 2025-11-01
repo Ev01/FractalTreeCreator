@@ -16,8 +16,6 @@ SDL_Renderer *renderer;
 
 double lastFrame, delta;
 
-    
-
 
 SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
     if (!SDL_CreateWindowAndRenderer(

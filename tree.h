@@ -34,11 +34,7 @@ void drawTreeRecursive(SDL_Renderer *renderer, double x, double y,
         int maxDepth=4, unsigned int depth=0);
 
 void saveConfig(const char *filename, const TreeSpecies &species, int depth, double sway);
-void loadConfig(TreeSpecies &species, int &depth, double &sway);
-void saveConfig2(const char *filename, const TreeSpecies &species, int depth, double sway);
-void loadConfig2(const char *filename, TreeLoadConfig *config);
+void loadConfig(const char *filename, TreeLoadConfig *config);
 
 void saveCallback(void* userdata, const char * const *filelist, int filter);
 void loadCallback(void* userdata, const char * const *filelist, int filter);
-// void drawTreeToSurfRecursive(SDL_Surface &surface, double x, double y, 
-//        double angle, int maxDepth=5, int depth=0);
