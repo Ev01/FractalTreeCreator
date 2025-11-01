@@ -57,7 +57,6 @@ void drawTreeRecursive(SDL_Renderer *renderer, double x, double y, double angle,
     }
 }
 
-/* Used with SDL_ShowSaveFileDialog to save to file */
 void saveCallback(void* userdata, const char * const *filelist, int filter) {
     TreeSaveConfig *config = (TreeSaveConfig*) userdata;
     //SDL_Log("%d", config->depth);
@@ -66,7 +65,6 @@ void saveCallback(void* userdata, const char * const *filelist, int filter) {
     SDL_free(config);
 }
 
-/* Used with SDL_ShowOpenFileDialog to load from file */
 void loadCallback(void* userdata, const char * const *filelist, int filter) {
     TreeLoadConfig *config = (TreeLoadConfig*) userdata;
     loadConfig(filelist[0], config);

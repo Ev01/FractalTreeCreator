@@ -36,5 +36,7 @@ void drawTreeRecursive(SDL_Renderer *renderer, double x, double y,
 void saveConfig(const char *filename, const TreeSpecies &species, int depth, double sway);
 void loadConfig(const char *filename, TreeLoadConfig *config);
 
+/* Used with SDL_ShowSaveFileDialog to save to file */
 void saveCallback(void* userdata, const char * const *filelist, int filter);
+/* Used with SDL_ShowOpenFileDialog to load from file */
 void loadCallback(void* userdata, const char * const *filelist, int filter);

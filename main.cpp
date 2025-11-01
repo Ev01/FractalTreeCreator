@@ -12,14 +12,46 @@
 #include "tree.h"
 #include "debug.h"
 
-SDL_Window *window;
-SDL_Renderer *renderer;
-
+static SDL_Window *window;
+static SDL_Renderer *renderer;
 static SDL_GLContext context;
 
+static double lastFrame, delta;
 
-double lastFrame, delta;
+float vertices[] = {
+    0.0f, -0.5f, 0.0f,
+    0.0f, 0.0f, 0.0f,
+    -0.5f, 0.5f, 0.0f,
+    0.5f, 0.5f, 0.0f,
+};
 
+unsigned int indices[] = {
+    0, 1,
+    1, 2,
+    1, 3,
+};
+
+unsigned int VBO;
+unsigned int EBO;
+unsigned int VAO;
+
+const char *vertexShaderSource = "#version 330 core\n"
+    "layout (location = 0) in vec3 aPos;\n"
+    "void main()\n"
+    "{\n"
+    "   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
+    "}\0";
+
+const char *fragmentShaderSource = "#version 330 core\n"
+    "out vec4 FragColor;\n"
+    "void main()\n"
+    "{\n"
+        "FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
+    "}\n\0";
+
+unsigned int vertexShader;
+unsigned int fragmentShader;
+unsigned int shaderProgram;
 
 SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
 
@@ -52,17 +84,51 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
     ImGui_ImplSDL3_InitForOpenGL(window, &context);
     ImGui_ImplOpenGL3_Init(nullptr);
 
-    /*
-    if (!SDL_CreateWindowAndRenderer(
-                "Fractal Tree", 800, 600, SDL_WINDOW_RESIZABLE, &window, &renderer)) {
-        SDL_Log("Couldn't create window and renderer: %s", SDL_GetError());
+    // Generate stuff for triangle
+    glGenVertexArrays(1, &VAO);
+    glGenBuffers(1, &VBO);
+    glGenBuffers(1, &EBO);
+
+    glBindVertexArray(VAO);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float)*3, (void*)0);
+    glEnableVertexAttribArray(0);
+    glBindVertexArray(0);
+
+    int success;
+    char infoLog[512];
+
+    vertexShader = glCreateShader(GL_VERTEX_SHADER);
+    glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
+    glCompileShader(vertexShader);
+    glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
+    if (!success) {
+        glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
+        SDL_Log("Vertex shader compilation failed: %s", infoLog);
     }
-    SDL_SetRenderVSync(renderer, 1);
 
+    fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
+    glCompileShader(fragmentShader);
+    glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
+    if (!success) {
+        glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
+        SDL_Log("Fragment shader compilation failed: %s", infoLog);
+    }
 
-    ImGui_ImplSDL3_InitForSDLRenderer(window, renderer);
-    ImGui_ImplSDLRenderer3_Init(renderer);
-    */
+    shaderProgram = glCreateProgram();
+    glAttachShader(shaderProgram, vertexShader);
+    glAttachShader(shaderProgram, fragmentShader);
+    glLinkProgram(shaderProgram);
+    glGetShaderiv(shaderProgram, GL_LINK_STATUS, &success);
+    if (!success) {
+        glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
+        SDL_Log("Shader linking failed: %s", infoLog);
+    }
+
 
     lastFrame = SDL_NS_TO_SECONDS((double) SDL_GetTicksNS());
 
@@ -109,19 +175,19 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
 
     ImGui::Render();
     
-    //SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-    //SDL_RenderClear(renderer);
-
-    //SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     //drawTreeRecursive(renderer, treeX, treeY, SDL_PI_D / 2.0, species, 
     //        sway, depth);
 
     glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
+
+    glUseProgram(shaderProgram);
+    glBindVertexArray(VAO);
+    //glDrawArrays(GL_LINE_STRIP, 0, 3);
+    glDrawElements(GL_LINES, 6, GL_UNSIGNED_INT, 0);
+
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-    //SDL_RenderPresent(renderer);
-    
     SDL_GL_SwapWindow(window);
 
     return SDL_APP_CONTINUE;
@@ -129,7 +195,8 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
 
 
 void SDL_AppQuit(void *appstate, SDL_AppResult result) {
-    
+    glDeleteShader(vertexShader);
+    glDeleteShader(fragmentShader);
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplSDL3_Shutdown();
     ImGui::DestroyContext();
