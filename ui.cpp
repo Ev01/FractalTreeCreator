@@ -3,7 +3,7 @@
 #include "tree.h"
 #include "debug.h"
 
-#include "imgui/imgui.h"
+#include "vendored/imgui/imgui.h"
 
 const double MAX_ANGLE_INCREASE_FACT = 2.0;
 const double MAX_LENGTH_INCREASE_FACT = 3.0;

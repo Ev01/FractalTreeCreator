@@ -5,7 +5,7 @@
 
 #include "tree.h"
 #include "debug.h"
-#include "nlohmann\json.hpp"
+#include "vendored/nlohmann/json.hpp"
 
 using json = nlohmann::json;
 

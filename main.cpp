@@ -2,9 +2,9 @@
 #include<SDL3/SDL.h>
 #include<SDL3/SDL_main.h>
 
-#include "imgui/imgui.h"
-#include "imgui/imgui_impl_sdl3.h"
-#include "imgui/imgui_impl_sdlrenderer3.h"
+#include "vendored/imgui/imgui.h"
+#include "vendored/imgui/imgui_impl_sdl3.h"
+#include "vendored/imgui/imgui_impl_sdlrenderer3.h"
 
 #include "ui.h"
 #include "tree.h"
