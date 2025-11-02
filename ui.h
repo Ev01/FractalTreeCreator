@@ -2,6 +2,6 @@
 #include <SDL3/SDL.h>
 #include "tree.h"
 
-void treeConfigWindow(TreeSpecies &species, int &depth, double &sway, SDL_Window *window);
+bool treeConfigWindow(TreeSpecies &species, int &depth, double &sway, SDL_Window *window);
 
 void debugInfoWindow(double delta);

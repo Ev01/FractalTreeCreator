@@ -12,12 +12,14 @@
 #include "tree.h"
 #include "debug.h"
 
+
 static SDL_Window *window;
 static SDL_Renderer *renderer;
 static SDL_GLContext context;
 
 static double lastFrame, delta;
 
+/*
 float vertices[] = {
     0.0f, -0.5f, 0.0f,
     0.0f, 0.0f, 0.0f,
@@ -30,6 +32,12 @@ unsigned int indices[] = {
     1, 2,
     1, 3,
 };
+*/
+
+float vertices[MAX_VERTICES];
+unsigned int indices[MAX_INDICES];
+int verticesSize = 0;
+int indicesSize = 0;
 
 unsigned int VBO;
 unsigned int EBO;
@@ -52,6 +60,15 @@ const char *fragmentShaderSource = "#version 330 core\n"
 unsigned int vertexShader;
 unsigned int fragmentShader;
 unsigned int shaderProgram;
+
+void rebuildTree(const TreeSpecies &species, float sway, int maxDepth)
+{
+    vertices[0] = 0.0;
+    vertices[1] = -0.5;
+    verticesSize = 2;
+    indicesSize = 0;
+    buildTree(species, vertices, verticesSize, indices, indicesSize, sway, maxDepth);
+}
 
 SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
 
@@ -84,6 +101,16 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
     ImGui_ImplSDL3_InitForOpenGL(window, &context);
     ImGui_ImplOpenGL3_Init(nullptr);
 
+
+    /*
+    for (int i = 0; i < verticesSize; i+=2) {
+        SDL_Log("Vertex: (%f, %f)", vertices[i], vertices[i + 1]);
+    }
+    for (int i = 0; i < indicesSize; i+=2) {
+        SDL_Log("Line with indices: (%d, %d)", indices[i], indices[i + 1]);
+    }
+    */
+
     // Generate stuff for triangle
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
@@ -91,10 +118,10 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
 
     glBindVertexArray(VAO);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_DYNAMIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float)*3, (void*)0);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_DYNAMIC_DRAW);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float)*2, (void*)0);
     glEnableVertexAttribArray(0);
     glBindVertexArray(0);
 
@@ -154,13 +181,25 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
     ImGui::NewFrame();
 
     
-    //debugInfoWindow(delta);
-    //Debug_newFrame();
+    debugInfoWindow(delta);
+    Debug_newFrame();
 
-    static TreeSpecies species = {3, 0.3, 50, {0, 0, 0}, 1.0, 1.0};
+    static TreeSpecies species = {3, 0.3, 0.4, {0, 0, 0}, 1.0, 1.0};
     static int depth = 4;
     static double sway = 0;
-    treeConfigWindow(species, depth, sway, window);
+    int oldDepth = depth;
+    double oldSway = sway;
+    bool configChanged = treeConfigWindow(species, depth, sway, window)
+        || oldDepth != depth
+        || oldSway != sway;
+        //|| SDL_fabs(oldSway - sway) > 0.0001;
+
+    if (configChanged) {
+        rebuildTree(species, sway, depth);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_DYNAMIC_DRAW);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_DYNAMIC_DRAW);
+        SDL_Log("Rebuild, %d indices", indicesSize);
+    }
 
 
     int windowWidth, windowHeight;
@@ -184,7 +223,7 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
     glUseProgram(shaderProgram);
     glBindVertexArray(VAO);
     //glDrawArrays(GL_LINE_STRIP, 0, 3);
-    glDrawElements(GL_LINES, 6, GL_UNSIGNED_INT, 0);
+    glDrawElements(GL_LINES, indicesSize, GL_UNSIGNED_INT, 0);
 
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 

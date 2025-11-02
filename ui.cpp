@@ -10,7 +10,9 @@ const double MAX_LENGTH_INCREASE_FACT = 3.0;
 const double MIN_SWAY = -SDL_PI_D / 4.0;
 const double MAX_SWAY = SDL_PI_D / 4.0;
 
-void treeConfigWindow(TreeSpecies &species, int &depth, double &sway, SDL_Window *window) {
+bool treeConfigWindow(TreeSpecies &species, int &depth, double &sway, SDL_Window *window) {
+    TreeSpecies beforeSpecies = species;
+
     ImGui::Begin("Tree Config");
     ImGui::PushItemWidth(-165);
     ImGui::Text("Configure your own tree!!");
@@ -24,13 +26,13 @@ void treeConfigWindow(TreeSpecies &species, int &depth, double &sway, SDL_Window
     static const double MIN_LENGTH_BIAS = -1.0;
     static const double MAX_LENGTH_BIAS = 3.0;
     static const double spreadMax = 3.14159;
-    static const double lengthMax = 200.0;
+    static const double lengthMax = 1.0;
     ImGui::SliderScalar("Branch Spread", ImGuiDataType_Double, 
             &species.branchSpread, &zero, &spreadMax, "%.3f");
     ImGui::SliderScalar("Sway", ImGuiDataType_Double, 
             &sway, &MIN_SWAY, &MAX_SWAY, "%.3f");
     ImGui::SliderScalar("Base Branch Length", ImGuiDataType_Double, 
-            &species.baseBranchLen, &zero, &lengthMax, "%.1f");
+            &species.baseBranchLen, &zero, &lengthMax, "%.2f");
 
     ImGui::SliderScalar("Angle Increase Factor", ImGuiDataType_Double,
             &species.angleIncreaseFactor, &zero, &MAX_ANGLE_INCREASE_FACT, 
@@ -81,6 +83,9 @@ void treeConfigWindow(TreeSpecies &species, int &depth, double &sway, SDL_Window
     
 
     ImGui::End();
+
+    bool configChanged = !(beforeSpecies == species);
+    return configChanged;
 }
 
 void debugInfoWindow(double delta) {
