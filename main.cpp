@@ -2,6 +2,10 @@
 #include<SDL3/SDL.h>
 #include<SDL3/SDL_main.h>
 
+#include<glm/glm.hpp>
+#include<glm/gtc/matrix_transform.hpp>
+#include<glm/gtc/type_ptr.hpp>
+
 #include "vendored/imgui/imgui.h"
 #include "vendored/imgui/imgui_impl_sdl3.h"
 //#include "vendored/imgui/imgui_impl_sdlrenderer3.h"
@@ -45,9 +49,11 @@ unsigned int VAO;
 
 const char *vertexShaderSource = "#version 330 core\n"
     "layout (location = 0) in vec3 aPos;\n"
+    "uniform mat4 projection;\n"
+    "uniform mat4 view;\n"
     "void main()\n"
     "{\n"
-    "   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
+    "   gl_Position = projection * view * vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
     "}\0";
 
 const char *fragmentShaderSource = "#version 330 core\n"
@@ -60,6 +66,8 @@ const char *fragmentShaderSource = "#version 330 core\n"
 unsigned int vertexShader;
 unsigned int fragmentShader;
 unsigned int shaderProgram;
+
+glm::mat4 projection;
 
 void rebuildTree(const TreeSpecies &species, float sway, int maxDepth)
 {
@@ -156,6 +164,8 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
         SDL_Log("Shader linking failed: %s", infoLog);
     }
 
+    glViewport(0, 0, 800, 600);
+    projection = glm::ortho(0.0f, 800.0f, 0.0f, 600.0f, 0.0f, 2.0f);
 
     lastFrame = SDL_NS_TO_SECONDS((double) SDL_GetTicksNS());
 
@@ -167,6 +177,13 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
     ImGui_ImplSDL3_ProcessEvent(event);
     if (event->type == SDL_EVENT_QUIT) {
         return SDL_APP_SUCCESS;
+    }
+    else if (event->type == SDL_EVENT_WINDOW_RESIZED) {
+        // Set the drawable area to the window's new width and height
+        float newWidth = event->window.data1;
+        float newHeight = event->window.data2;
+        glViewport(0, 0, newWidth, newHeight);
+        projection = glm::ortho(0.0f, newWidth, 0.0f, newHeight, 0.0f, 2.0f);
     }
     return SDL_APP_CONTINUE;
 }
@@ -184,7 +201,7 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
     debugInfoWindow(delta);
     Debug_newFrame();
 
-    static TreeSpecies species = {3, 0.3, 0.4, {0, 0, 0}, 1.0, 1.0};
+    static TreeSpecies species = {3, 0.3, 50.0, {0, 0, 0}, 1.0, 1.0};
     static int depth = 4;
     static double sway = 0;
     int oldDepth = depth;
@@ -205,7 +222,7 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
     int windowWidth, windowHeight;
     SDL_GetWindowSize(window, &windowWidth, &windowHeight);
     static int treeX = windowWidth / 2;
-    static int treeY = windowHeight * 0.95;
+    static int treeY = windowHeight * 0.05;
 
     ImGui::Begin("Tree Position");
     ImGui::SliderInt("X", &treeX, 0, windowWidth);
@@ -220,7 +237,15 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
     glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
+    glm::mat4 view = glm::mat4(1.0f);
+    view = glm::translate(view, glm::vec3((float)treeX, (float)treeY, 0.0f));
+
+
     glUseProgram(shaderProgram);
+    int projectionLoc = glGetUniformLocation(shaderProgram, "projection");
+    glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
+    int viewLoc = glGetUniformLocation(shaderProgram, "view");
+    glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
     glBindVertexArray(VAO);
     //glDrawArrays(GL_LINE_STRIP, 0, 3);
     glDrawElements(GL_LINES, indicesSize, GL_UNSIGNED_INT, 0);

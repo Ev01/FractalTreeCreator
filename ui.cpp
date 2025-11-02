@@ -26,7 +26,7 @@ bool treeConfigWindow(TreeSpecies &species, int &depth, double &sway, SDL_Window
     static const double MIN_LENGTH_BIAS = -1.0;
     static const double MAX_LENGTH_BIAS = 3.0;
     static const double spreadMax = 3.14159;
-    static const double lengthMax = 1.0;
+    static const double lengthMax = 500.0;
     ImGui::SliderScalar("Branch Spread", ImGuiDataType_Double, 
             &species.branchSpread, &zero, &spreadMax, "%.3f");
     ImGui::SliderScalar("Sway", ImGuiDataType_Double, 
