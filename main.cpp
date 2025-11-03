@@ -47,6 +47,7 @@ unsigned int VBO;
 unsigned int EBO;
 unsigned int VAO;
 
+/*
 const char *vertexShaderSource = "#version 330 core\n"
     "layout (location = 0) in vec3 aPos;\n"
     "uniform mat4 projection;\n"
@@ -55,25 +56,70 @@ const char *vertexShaderSource = "#version 330 core\n"
     "{\n"
     "   gl_Position = projection * view * vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
     "}\0";
+*/
 
-const char *fragmentShaderSource = "#version 330 core\n"
+/*
+const char *fragmentShaderSource = "#version 330 core\n
     "out vec4 FragColor;\n"
     "void main()\n"
     "{\n"
         "FragColor = vec4(0.0f, 0.0f, 0.0f, 1.0f);\n"
     "}\n\0";
+*/
+char *vertexShaderSource;
+char *fragmentShaderSource;
 
 unsigned int vertexShader;
 unsigned int fragmentShader;
 unsigned int shaderProgram;
 glm::mat4 projection;
+int projectionLoc;
+int viewLoc;
 
 static TreeSpecies species = {3, 0.3, 50.0, {0, 0, 0}, 1.0, 1.0};
 static int depth = 4;
 static double sway = 0;
 
+static unsigned int createShaderFromFile(const char *filename, GLenum shaderType)
+{
+    int success;
+    char infoLog[512];
 
-void rebuildTree(const TreeSpecies &species, float sway, int maxDepth)
+    char *shaderSource = (char*)SDL_LoadFile(filename, NULL);
+
+    unsigned int shaderID = glCreateShader(shaderType);
+    glShaderSource(shaderID, 1, &shaderSource, NULL);
+    glCompileShader(shaderID);
+    glGetShaderiv(shaderID, GL_COMPILE_STATUS, &success);
+    if (!success) {
+        glGetShaderInfoLog(shaderID, 512, NULL, infoLog);
+        SDL_Log("Vertex shader compilation failed: %s", infoLog);
+    }
+
+    SDL_free(shaderSource);
+    return shaderID;
+}
+
+static unsigned int createProgramFromShaders(unsigned int* shaders, unsigned int count)
+{
+    int success;
+    char infoLog[512];
+
+    unsigned int programID = glCreateProgram();
+    for (int i = 0; i < count; i++) {
+        glAttachShader(programID, shaders[i]);
+    }
+    glLinkProgram(programID);
+    glGetShaderiv(programID, GL_LINK_STATUS, &success);
+    if (!success) {
+        glGetProgramInfoLog(programID, 512, NULL, infoLog);
+        SDL_Log("Shader linking failed: %s", infoLog);
+    }
+
+    return programID;
+}
+
+static void rebuildTree(const TreeSpecies &species, float sway, int maxDepth)
 {
     vertices[0] = 0.0;
     vertices[1] = 0.0;
@@ -106,6 +152,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
         return SDL_APP_FAILURE;
     }
 
+    // Initiate IMGUI
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO &io = ImGui::GetIO(); (void)io;
@@ -118,16 +165,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
     ImGui_ImplOpenGL3_Init(nullptr);
 
 
-    /*
-    for (int i = 0; i < verticesSize; i+=2) {
-        SDL_Log("Vertex: (%f, %f)", vertices[i], vertices[i + 1]);
-    }
-    for (int i = 0; i < indicesSize; i+=2) {
-        SDL_Log("Line with indices: (%d, %d)", indices[i], indices[i + 1]);
-    }
-    */
-
-    // Generate stuff for triangle
+    // Generate Vertex Array Object to store the tree's draw info.
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
     glGenBuffers(1, &EBO);
@@ -135,45 +173,21 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
     glBindVertexArray(VAO);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    //glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_DYNAMIC_DRAW);
-    //glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_DYNAMIC_DRAW);
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float)*2, (void*)0);
     glEnableVertexAttribArray(0);
     glBindVertexArray(0);
 
-    int success;
-    char infoLog[512];
-
-    vertexShader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
-    glCompileShader(vertexShader);
-    glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
-    if (!success) {
-        glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
-        SDL_Log("Vertex shader compilation failed: %s", infoLog);
-    }
-
-    fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
-    glCompileShader(fragmentShader);
-    glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
-    if (!success) {
-        glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
-        SDL_Log("Fragment shader compilation failed: %s", infoLog);
-    }
-
-    shaderProgram = glCreateProgram();
-    glAttachShader(shaderProgram, vertexShader);
-    glAttachShader(shaderProgram, fragmentShader);
-    glLinkProgram(shaderProgram);
-    glGetShaderiv(shaderProgram, GL_LINK_STATUS, &success);
-    if (!success) {
-        glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
-        SDL_Log("Shader linking failed: %s", infoLog);
-    }
+    // Load shaders
+    vertexShader = createShaderFromFile("shaders/vertex.glsl", GL_VERTEX_SHADER);
+    fragmentShader = createShaderFromFile("shaders/fragment.glsl", GL_FRAGMENT_SHADER);
+    unsigned int shaders[2] = {vertexShader, fragmentShader};
+    shaderProgram = createProgramFromShaders(shaders, 2);
+    projectionLoc = glGetUniformLocation(shaderProgram, "projection");
+    viewLoc = glGetUniformLocation(shaderProgram, "view");
 
     glViewport(0, 0, 800, 600);
     projection = glm::ortho(0.0f, 800.0f, 0.0f, 600.0f, 0.0f, 2.0f);
+
     // First build of the tree. Tree will only rebuild again when the
     // configuration changes
     rebuildTree(species, sway, depth);
@@ -208,7 +222,6 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
     ImGui_ImplSDL3_NewFrame();
     ImGui::NewFrame();
 
-    
     debugInfoWindow(delta);
     Debug_newFrame();
 
@@ -229,24 +242,23 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
     static int treeX = windowWidth / 2;
     static int treeY = windowHeight * 0.05;
 
+    // UI Stuff
     ImGui::Begin("Tree Position");
     ImGui::SliderInt("X", &treeX, 0, windowWidth);
     ImGui::SliderInt("Y", &treeY, 0, windowHeight);
     ImGui::End();
 
     ImGui::Render();
+
+    glm::mat4 view = glm::mat4(1.0f);
+    view = glm::translate(view, glm::vec3((float)treeX, (float)treeY, 0.0f));
     
     glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    glm::mat4 view = glm::mat4(1.0f);
-    view = glm::translate(view, glm::vec3((float)treeX, (float)treeY, 0.0f));
-
-
+    // Render the tree
     glUseProgram(shaderProgram);
-    int projectionLoc = glGetUniformLocation(shaderProgram, "projection");
     glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
-    int viewLoc = glGetUniformLocation(shaderProgram, "view");
     glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
     glBindVertexArray(VAO);
     //glDrawArrays(GL_LINE_STRIP, 0, 3);

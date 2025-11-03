@@ -17,7 +17,7 @@ bool treeConfigWindow(TreeSpecies &species, int &depth, double &sway, SDL_Window
     ImGui::PushItemWidth(-165);
     ImGui::Text("Configure your own tree!!");
 
-    ImGui::SliderInt("Depth", &depth, 1, 8);
+    ImGui::SliderInt("Depth", &depth, 1, 12);
 
     ImGui::SliderInt("Number of Branches", &species.numBranches, 1, 8, 
             "%d", ImGuiSliderFlags_ClampOnInput);
