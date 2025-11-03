@@ -60,22 +60,30 @@ const char *fragmentShaderSource = "#version 330 core\n"
     "out vec4 FragColor;\n"
     "void main()\n"
     "{\n"
-        "FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
+        "FragColor = vec4(0.0f, 0.0f, 0.0f, 1.0f);\n"
     "}\n\0";
 
 unsigned int vertexShader;
 unsigned int fragmentShader;
 unsigned int shaderProgram;
-
 glm::mat4 projection;
+
+static TreeSpecies species = {3, 0.3, 50.0, {0, 0, 0}, 1.0, 1.0};
+static int depth = 4;
+static double sway = 0;
+
 
 void rebuildTree(const TreeSpecies &species, float sway, int maxDepth)
 {
     vertices[0] = 0.0;
-    vertices[1] = -0.5;
+    vertices[1] = 0.0;
     verticesSize = 2;
     indicesSize = 0;
     buildTree(species, vertices, verticesSize, indices, indicesSize, sway, maxDepth);
+    glBindVertexArray(VAO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_DYNAMIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_DYNAMIC_DRAW);
+    SDL_Log("Rebuild, %d indices (lines), %d vertices (Points)", indicesSize, verticesSize);
 }
 
 SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
@@ -126,9 +134,9 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
 
     glBindVertexArray(VAO);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_DYNAMIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_DYNAMIC_DRAW);
+    //glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_DYNAMIC_DRAW);
+    //glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_DYNAMIC_DRAW);
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float)*2, (void*)0);
     glEnableVertexAttribArray(0);
     glBindVertexArray(0);
@@ -166,6 +174,9 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
 
     glViewport(0, 0, 800, 600);
     projection = glm::ortho(0.0f, 800.0f, 0.0f, 600.0f, 0.0f, 2.0f);
+    // First build of the tree. Tree will only rebuild again when the
+    // configuration changes
+    rebuildTree(species, sway, depth);
 
     lastFrame = SDL_NS_TO_SECONDS((double) SDL_GetTicksNS());
 
@@ -201,9 +212,6 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
     debugInfoWindow(delta);
     Debug_newFrame();
 
-    static TreeSpecies species = {3, 0.3, 50.0, {0, 0, 0}, 1.0, 1.0};
-    static int depth = 4;
-    static double sway = 0;
     int oldDepth = depth;
     double oldSway = sway;
     bool configChanged = treeConfigWindow(species, depth, sway, window)
@@ -213,9 +221,6 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
 
     if (configChanged) {
         rebuildTree(species, sway, depth);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_DYNAMIC_DRAW);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_DYNAMIC_DRAW);
-        SDL_Log("Rebuild, %d indices", indicesSize);
     }
 
 
@@ -231,9 +236,6 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
 
     ImGui::Render();
     
-    //drawTreeRecursive(renderer, treeX, treeY, SDL_PI_D / 2.0, species, 
-    //        sway, depth);
-
     glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
