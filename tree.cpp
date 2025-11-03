@@ -4,6 +4,7 @@
 //#include <iostream>
 
 #include "tree.h"
+#include "render.h"
 #include "debug.h"
 #include "vendored/nlohmann/json.hpp"
 

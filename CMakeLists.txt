@@ -22,6 +22,7 @@ PRIVATE
     tree.cpp
     ui.cpp
     debug.cpp
+    render.cpp
     vendored/imgui/imgui.cpp
     vendored/imgui/imgui_demo.cpp
     vendored/imgui/imgui_draw.cpp

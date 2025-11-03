@@ -2,8 +2,6 @@
 #include<SDL3/SDL.h>
 
 #define MAX_NUM_BRANCHES 8
-#define MAX_VERTICES 1000000
-#define MAX_INDICES 1000000
 
 struct TreeSpecies {
     int numBranches;
