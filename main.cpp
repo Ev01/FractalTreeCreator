@@ -125,7 +125,7 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
     ImGui::NewFrame();
 
     debugInfoWindow(delta);
-    Debug_newFrame();
+    //Debug_newFrame();
 
     int oldDepth = depth;
     double oldSway = sway;

@@ -59,7 +59,7 @@ void drawTreeRecursive(SDL_Renderer *renderer, double x, double y, double angle,
         drawTreeRecursive(renderer, branchX, branchY, angle, species, sway, 
                 maxDepth, depth+1);
         SDL_RenderLine(renderer, x, y, branchX, branchY);
-        Debug_incDrawCalls();
+        //Debug_incDrawCalls();
         return;
     }
     
@@ -77,7 +77,7 @@ void drawTreeRecursive(SDL_Renderer *renderer, double x, double y, double angle,
         drawTreeRecursive(renderer, branchX, branchY, branchAngle, species, sway,
                 maxDepth, depth+1+species.depthBiases[i]);
         SDL_RenderLine(renderer, x, y, branchX, branchY);
-        Debug_incDrawCalls();
+        //Debug_incDrawCalls();
     }
 }
 
@@ -143,7 +143,7 @@ void buildTreeRecursive(const TreeSpecies &species, float *vertices, int &vertic
         buildTreeRecursive(species, vertices, verticesSize, indices, indicesSize, endIndex,
                   branchAngle, sway, maxDepth, newDepth);
 
-        Debug_incDrawCalls();
+        //Debug_incDrawCalls();
     }
 }
 

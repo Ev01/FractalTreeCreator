@@ -2,6 +2,7 @@
 #include "ui.h"
 #include "tree.h"
 #include "debug.h"
+#include "render.h"
 
 #include "vendored/imgui/imgui.h"
 
@@ -91,6 +92,12 @@ bool treeConfigWindow(TreeSpecies &species, int &depth, double &sway, SDL_Window
 void debugInfoWindow(double delta) {
     ImGui::Begin("Debug");
     ImGui::Text("FPS: %.2f", 1.0 / delta);
-    ImGui::Text("Draw calls: %d", (int)Debug_getDrawCalls());
+
+    DrawInfo &treeDrawInfo = Render::GetTreeDrawInfo();
+
+    ImGui::Text("Vertices: %d", treeDrawInfo.verticesSize / 2);
+    ImGui::Text("Num Branches: %d", treeDrawInfo.indicesSize / 2);
+    ImGui::Text("Indices: %d", treeDrawInfo.indicesSize);
+    //ImGui::Text("Draw calls: %d", (int)Debug_getDrawCalls());
     ImGui::End();
 }
