@@ -98,6 +98,7 @@ void debugInfoWindow(double delta) {
     ImGui::Text("Vertices: %d", treeDrawInfo.verticesSize / 2);
     ImGui::Text("Num Branches: %d", treeDrawInfo.indicesSize / 2);
     ImGui::Text("Indices: %d", treeDrawInfo.indicesSize);
+    ImGui::Text("Time to last build: %.3f", getTimeToLastBuild());
     //ImGui::Text("Draw calls: %d", (int)Debug_getDrawCalls());
     ImGui::End();
 }

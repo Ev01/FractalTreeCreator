@@ -10,6 +10,8 @@
 
 using json = nlohmann::json;
 
+double timeToLastBuild = 0.0;
+
 bool TreeSpecies::operator==(const TreeSpecies &other) const
 {
     //double err = 0.0001;
@@ -31,60 +33,12 @@ bool TreeSpecies::operator==(const TreeSpecies &other) const
             && lengthIncreaseFactor == other.lengthIncreaseFactor
             && hasTrunk == other.hasTrunk;
 }
-            
-
-void drawTreeRecursive(SDL_Renderer *renderer, double x, double y, double angle, 
-        const TreeSpecies &species, double sway, 
-        int maxDepth, unsigned int depth) {
-
-    SDL_assert(species.numBranches <= MAX_NUM_BRANCHES);
-
-    if (depth >= maxDepth) return;
-    double length = species.baseBranchLen;
-
-    double branchLength, branchAngle, branchX, branchY;
-    double newBranchSpread = species.branchSpread;
-    unsigned int depthFromTrunk = 0;
-    if (depth > 0) {
-        depthFromTrunk = depth - 1;
-        newBranchSpread *= SDL_pow(species.angleIncreaseFactor, depthFromTrunk);
-        length *= SDL_pow(species.lengthIncreaseFactor, depth);
-    }
-    else if (species.hasTrunk) {
-        // Draw one branch when depth is 0. This is the trunk
-        double swayAngleMod = sway;
-        angle += swayAngleMod;
-        branchX = x + SDL_cos(angle) * length;
-        branchY = y - SDL_sin(angle) * length;
-        drawTreeRecursive(renderer, branchX, branchY, angle, species, sway, 
-                maxDepth, depth+1);
-        SDL_RenderLine(renderer, x, y, branchX, branchY);
-        //Debug_incDrawCalls();
-        return;
-    }
-    
-
-    for (int i=0; i < species.numBranches; i++) {
-        branchLength = length * (species.lengthBiases[i] + 1);
-        branchAngle = angle
-            + newBranchSpread * ((double) i - (double)(species.numBranches-1) / 2);
-
-        double swayAngleMod = SDL_sin(branchAngle) * sway;
-        branchAngle += swayAngleMod;
-
-        branchX = x + SDL_cos(branchAngle) * branchLength;
-        branchY = y - SDL_sin(branchAngle) * branchLength;
-        drawTreeRecursive(renderer, branchX, branchY, branchAngle, species, sway,
-                maxDepth, depth+1+species.depthBiases[i]);
-        SDL_RenderLine(renderer, x, y, branchX, branchY);
-        //Debug_incDrawCalls();
-    }
-}
 
 
-void buildTreeRecursive(const TreeSpecies &species, float *vertices, int &verticesSize,
-        unsigned int *indices,
-               int &indicesSize, int baseIndex, double angle, float sway, int maxDepth, unsigned int depth)
+void buildTreeRecursive(const TreeSpecies &species, float *vertices,
+        int &verticesSize, unsigned int *indices, int &indicesSize,
+        int baseIndex, double angle, float sway, int maxDepth,
+        unsigned int depth)
 {
     SDL_assert(species.numBranches <= MAX_NUM_BRANCHES);
 
@@ -140,8 +94,8 @@ void buildTreeRecursive(const TreeSpecies &species, float *vertices, int &vertic
         indices[indicesSize++] = endIndex;
 
 
-        buildTreeRecursive(species, vertices, verticesSize, indices, indicesSize, endIndex,
-                  branchAngle, sway, maxDepth, newDepth);
+        buildTreeRecursive(species, vertices, verticesSize, indices, 
+                indicesSize, endIndex, branchAngle, sway, maxDepth, newDepth);
 
         //Debug_incDrawCalls();
     }
@@ -151,17 +105,19 @@ void buildTree(const TreeSpecies &species, float *vertices, int &verticesSize,
         unsigned int *indices, int &indicesSize, float sway, int maxDepth)
 {
     SDL_assert(species.numBranches <= MAX_NUM_BRANCHES);
+    Uint64 startTime = SDL_GetTicksNS();
     vertices[0] = 0.0;
     vertices[1] = -0.5;
     verticesSize = 2;
     buildTreeRecursive(species, vertices, verticesSize, indices, indicesSize, 
               0, -SDL_PI_D/2.0, sway, maxDepth, 0);
+    Uint64 endTime = SDL_GetTicksNS();
+    timeToLastBuild = (double)(endTime - startTime) / SDL_NS_PER_SECOND;
 }
     
 
-
-
-void saveCallback(void* userdata, const char * const *filelist, int filter) {
+void saveCallback(void* userdata, const char * const *filelist, int filter) 
+{
     TreeSaveConfig *config = (TreeSaveConfig*) userdata;
     //SDL_Log("%d", config->depth);
     //SDL_Log("%s", filelist[0]);
@@ -169,14 +125,17 @@ void saveCallback(void* userdata, const char * const *filelist, int filter) {
     SDL_free(config);
 }
 
-void loadCallback(void* userdata, const char * const *filelist, int filter) {
+void loadCallback(void* userdata, const char * const *filelist, int filter) 
+{
     TreeLoadConfig *config = (TreeLoadConfig*) userdata;
     loadConfig(filelist[0], config);
     SDL_free(config);
 }
 
 
-void saveConfig(const char *filename, const TreeSpecies &species, int depth, double sway) {
+void saveConfig(const char *filename, const TreeSpecies &species, int depth,
+        double sway) 
+{
     SDL_IOStream *user = SDL_IOFromFile(filename, "w");
     if (user == NULL) {
         SDL_Log("Couldn't open file");
@@ -210,7 +169,8 @@ void saveConfig(const char *filename, const TreeSpecies &species, int depth, dou
     }
 }
 
-void loadConfig(const char *filename, TreeLoadConfig *config) {
+void loadConfig(const char *filename, TreeLoadConfig *config) 
+{
     SDL_IOStream *file = SDL_IOFromFile(filename, "r");
     double *sway = config->sway;
     int *depth = config->depth;
@@ -274,3 +234,8 @@ void loadConfig(const char *filename, TreeLoadConfig *config) {
     SDL_CloseIO(file);
 }
 
+
+double getTimeToLastBuild()
+{
+    return timeToLastBuild;
+}
