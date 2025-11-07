@@ -10,6 +10,8 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/$<CONFIGURATION>")
 #set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -static -static-libgcc -static-libstdc++")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 
+set(CMAKE_INSTALL_RPATH "$ORIGIN/../lib")
+
 # This assumes the SDL source is available in vendored/SDL
 #add_subdirectory(vendored/SDL EXCLUDE_FROM_ALL)
 find_package(SDL3 REQUIRED CONFIG REQUIRED COMPONENTS SDL3-shared)
@@ -36,3 +38,17 @@ PRIVATE
 )
 
 target_link_libraries(fractal_tree PRIVATE SDL3::SDL3 -static-libgcc -static-libstdc++)
+
+# CPack stuff
+
+install(TARGETS fractal_tree RUNTIME_DEPENDENCY_SET deps 
+    RUNTIME DESTINATION bin)
+# Install dependencies but exclude system libraries
+install(RUNTIME_DEPENDENCY_SET deps PRE_EXCLUDE_REGEXES ".*libc\.so.*|.*libm\.so.*|.*ld-linux.*")
+# Put shaders in the bin directory
+install(DIRECTORY shaders DESTINATION bin)
+# Enable packaging
+set(CPACK_PROJECT_NAME ${PROJECT_NAME})
+set(CPACK_GENERATOR "TGZ")
+
+include(CPack)
