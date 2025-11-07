@@ -28,7 +28,7 @@ bool TreeSpecies::operator==(const TreeSpecies &other) const
     }
     return numBranches == other.numBranches
             && branchSpread == other.branchSpread
-            && baseBranchLen == other.baseBranchLen
+            //&& baseBranchLen == other.baseBranchLen
             && angleIncreaseFactor == other.angleIncreaseFactor
             && lengthIncreaseFactor == other.lengthIncreaseFactor
             && hasTrunk == other.hasTrunk;
@@ -44,7 +44,8 @@ void buildTreeRecursive(const TreeSpecies &species, float *vertices,
 
     if (depth >= maxDepth) return;
 
-    float length = species.baseBranchLen;
+    //float length = species.baseBranchLen;
+    float length = 1.0;
     float branchLength, branchAngle, branchEndX, branchEndY;
     float newBranchSpread = species.branchSpread;
     float baseX = vertices[baseIndex * 2];

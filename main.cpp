@@ -107,7 +107,7 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
         // Move the tree so it zooms in on the mouse, not the base of the tree.
         treeX += xDiff * (zoomFactor-1.0);
         treeY += yDiff * (zoomFactor-1.0);
-        rebuildTree(species, sway, depth);
+        //rebuildTree(species, sway, depth);
     }
 
 
@@ -150,7 +150,7 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
 
     ImGui::Render();
 
-    Render::DrawFrame((int)treeX, (int)treeY);
+    Render::DrawFrame((int)treeX, (int)treeY, species.baseBranchLen);
 
     return SDL_APP_CONTINUE;
 }

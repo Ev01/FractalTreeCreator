@@ -116,10 +116,12 @@ void Render::UpdateViewportSize(float width, float height)
 }
 
 
-void Render::DrawFrame(int treeX, int treeY)
+void Render::DrawFrame(int treeX, int treeY, float zoom)
 {
     glm::mat4 view = glm::mat4(1.0f);
     view = glm::translate(view, glm::vec3((float)treeX, (float)treeY, 0.0f));
+    view = glm::scale(view, glm::vec3(zoom, zoom, zoom));
+
     
     glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
