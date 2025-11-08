@@ -71,6 +71,8 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
     rebuildTree(species, sway, depth);
 
     lastFrame = SDL_NS_TO_SECONDS((double) SDL_GetTicksNS());
+    SDL_Log("Base path:");
+    SDL_Log("%s", SDL_GetBasePath());
 
     return SDL_APP_CONTINUE;
 }

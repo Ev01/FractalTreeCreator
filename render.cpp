@@ -28,7 +28,9 @@ static unsigned int createShaderFromFile(const char *filename, GLenum shaderType
     int success;
     char infoLog[512];
 
-    char *shaderSource = (char*)SDL_LoadFile(filename, NULL);
+    char absolutePath[512];
+    SDL_snprintf(absolutePath, 512, "%s../%s", SDL_GetBasePath(), filename);
+    char *shaderSource = (char*)SDL_LoadFile(absolutePath, NULL);
 
     unsigned int shaderID = glCreateShader(shaderType);
     glShaderSource(shaderID, 1, &shaderSource, NULL);

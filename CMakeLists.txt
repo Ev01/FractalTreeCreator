@@ -46,7 +46,7 @@ install(TARGETS fractal_tree RUNTIME_DEPENDENCY_SET deps
 # Install dependencies but exclude system libraries
 install(RUNTIME_DEPENDENCY_SET deps PRE_EXCLUDE_REGEXES ".*libc\.so.*|.*libm\.so.*|.*ld-linux.*")
 # Put shaders in the bin directory
-install(DIRECTORY shaders DESTINATION bin)
+install(DIRECTORY shaders DESTINATION .)
 # Install demo trees with package
 install(DIRECTORY DemoTrees DESTINATION .)
 # Enable packaging
