@@ -11,6 +11,12 @@ const double MAX_LENGTH_INCREASE_FACT = 3.0;
 const double MIN_SWAY = -SDL_PI_D / 4.0;
 const double MAX_SWAY = SDL_PI_D / 4.0;
 
+SDL_DialogFileFilter fileFilters[] = {
+    {"Tree file", "tree"},
+    {"All files", "*"}
+};
+const int numFileFilters = 2;
+
 bool treeConfigWindow(TreeSpecies &species, int &depth, double &sway, SDL_Window *window) {
     TreeSpecies beforeSpecies = species;
 
@@ -68,7 +74,8 @@ bool treeConfigWindow(TreeSpecies &species, int &depth, double &sway, SDL_Window
         void *dest = SDL_malloc(sizeof(config));
         SDL_memcpy(dest, &config, sizeof(config));
         
-        SDL_ShowSaveFileDialog(saveCallback, dest, window, NULL, 0, NULL);
+        SDL_ShowSaveFileDialog(saveCallback, dest, window,
+                fileFilters, numFileFilters, NULL);
         //saveConfig(species, depth, sway);
     }
     
@@ -79,7 +86,8 @@ bool treeConfigWindow(TreeSpecies &species, int &depth, double &sway, SDL_Window
         void *data = SDL_malloc(sizeof(config));
         SDL_memcpy(data, &config, sizeof(config));
 
-        SDL_ShowOpenFileDialog(loadCallback, data, window, NULL, 0, NULL, false);
+        SDL_ShowOpenFileDialog(loadCallback, data, window,
+                fileFilters, numFileFilters, NULL, false);
     }
     
 

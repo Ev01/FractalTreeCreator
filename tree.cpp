@@ -139,35 +139,35 @@ void saveConfig(const char *filename, const TreeSpecies &species, int depth,
 {
     SDL_IOStream *user = SDL_IOFromFile(filename, "w");
     if (user == NULL) {
-        SDL_Log("Couldn't open file");
-    } else {
+        //SDL_Log("Couldn't open file");
+        return;
+    } 
 
-        json j;
-        j["numBranches"] = species.numBranches;
-        j["branchSpread"] = species.branchSpread;
-        j["angleIncreaseFactor"] = species.angleIncreaseFactor;
-        j["lengthIncreaseFactor"] = species.lengthIncreaseFactor;
-        j["hasTrunk"] = species.hasTrunk;
-        j["baseBranchLen"] = species.baseBranchLen;
-        j["sway"] = sway;
-        j["depth"] = depth;
-        for (int i = 0; i < MAX_NUM_BRANCHES; i++) {
-            char label[20];
-            SDL_snprintf(label, sizeof(label), "depthBias%i", i);
-            j[label] = species.depthBiases[i];
-            SDL_snprintf(label, sizeof(label), "lengthBias%i", i);
-            j[label] = species.lengthBiases[i];
-        }
-
-        std::string str = j.dump();
-
-        char* toSave = str.data();
-
-        size_t len = str.size();//sizeof(toSave);
-        SDL_WriteIO(user, toSave, len);
-
-        SDL_CloseIO(user);
+    json j;
+    j["numBranches"] = species.numBranches;
+    j["branchSpread"] = species.branchSpread;
+    j["angleIncreaseFactor"] = species.angleIncreaseFactor;
+    j["lengthIncreaseFactor"] = species.lengthIncreaseFactor;
+    j["hasTrunk"] = species.hasTrunk;
+    j["baseBranchLen"] = species.baseBranchLen;
+    j["sway"] = sway;
+    j["depth"] = depth;
+    for (int i = 0; i < MAX_NUM_BRANCHES; i++) {
+        char label[20];
+        SDL_snprintf(label, sizeof(label), "depthBias%i", i);
+        j[label] = species.depthBiases[i];
+        SDL_snprintf(label, sizeof(label), "lengthBias%i", i);
+        j[label] = species.lengthBiases[i];
     }
+
+    std::string str = j.dump();
+
+    char* toSave = str.data();
+
+    size_t len = str.size();//sizeof(toSave);
+    SDL_WriteIO(user, toSave, len);
+
+    SDL_CloseIO(user);
 }
 
 void loadConfig(const char *filename, TreeLoadConfig *config) 
