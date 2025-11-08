@@ -17,6 +17,7 @@
 #include "render.h"
 #include "debug.h"
 
+#define PROJECT_VERSION "0.1.0a"
 
 
 static double lastFrame, delta;
@@ -49,7 +50,7 @@ static void rebuildTree(const TreeSpecies &species, float sway, int maxDepth)
 
 SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
     SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMEPAD);
-    SDL_SetAppMetadata("Fractal Tree", "0.1.0a", "com.evanbarac.fractaltree");
+    SDL_SetAppMetadata("Fractal Tree", PROJECT_VERSION, "com.evanbarac.fractaltree");
 
     Render::Init();
 

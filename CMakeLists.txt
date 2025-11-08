@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.26)
-project(fractal_tree C CXX)
+project(fractal_tree LANGUAGES C CXX VERSION 0.1.0)
 
 # set the output directory for built objects.
 # This makes sure that the dynamic library goes into the build directory automatically.
@@ -47,6 +47,8 @@ install(TARGETS fractal_tree RUNTIME_DEPENDENCY_SET deps
 install(RUNTIME_DEPENDENCY_SET deps PRE_EXCLUDE_REGEXES ".*libc\.so.*|.*libm\.so.*|.*ld-linux.*")
 # Put shaders in the bin directory
 install(DIRECTORY shaders DESTINATION bin)
+# Install demo trees with package
+install(DIRECTORY DemoTrees DESTINATION .)
 # Enable packaging
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_GENERATOR "TGZ")
