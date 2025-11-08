@@ -4,7 +4,7 @@
 
 #include "tree.h"
 #include "render.h"
-#include "vendored/nlohmann/json.hpp"
+#include "../vendored/nlohmann/json.hpp"
 
 using json = nlohmann::json;
 

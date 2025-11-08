@@ -2,8 +2,8 @@
 #include "tree.h"
 
 #include "glad/glad.h"
-#include "vendored/imgui/imgui.h"
-#include "vendored/imgui/imgui_impl_opengl3.h"
+#include "../vendored/imgui/imgui.h"
+#include "../vendored/imgui/imgui_impl_opengl3.h"
 
 #include<SDL3/SDL.h>
 #include<glm/glm.hpp>

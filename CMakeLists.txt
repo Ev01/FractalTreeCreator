@@ -20,11 +20,11 @@ add_executable(fractal_tree)
 
 target_sources(fractal_tree
 PRIVATE
-    main.cpp
-    tree.cpp
-    ui.cpp
-    debug.cpp
-    render.cpp
+    src/main.cpp
+    src/tree.cpp
+    src/ui.cpp
+    src/debug.cpp
+    src/render.cpp
     vendored/imgui/imgui.cpp
     vendored/imgui/imgui_demo.cpp
     vendored/imgui/imgui_draw.cpp
@@ -33,7 +33,7 @@ PRIVATE
     vendored/imgui/imgui_impl_opengl3.cpp
     vendored/imgui/imgui_tables.cpp
     vendored/imgui/imgui_widgets.cpp
-    glad/glad.c
+    src/glad/glad.c
 
 )
 

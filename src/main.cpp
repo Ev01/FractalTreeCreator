@@ -6,10 +6,10 @@
 #include<glm/gtc/matrix_transform.hpp>
 #include<glm/gtc/type_ptr.hpp>
 
-#include "vendored/imgui/imgui.h"
-#include "vendored/imgui/imgui_impl_sdl3.h"
+#include "../vendored/imgui/imgui.h"
+#include "../vendored/imgui/imgui_impl_sdl3.h"
 //#include "vendored/imgui/imgui_impl_sdlrenderer3.h"
-#include "vendored/imgui/imgui_impl_opengl3.h"
+#include "../vendored/imgui/imgui_impl_opengl3.h"
 #include "glad/glad.h"
 
 #include "ui.h"
