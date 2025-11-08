@@ -1,16 +1,15 @@
 #include<SDL3/SDL.h>
 #include <string>
 #include <cstdio>
-//#include <iostream>
 
 #include "tree.h"
 #include "render.h"
-#include "debug.h"
 #include "vendored/nlohmann/json.hpp"
 
 using json = nlohmann::json;
 
 double timeToLastBuild = 0.0;
+bool recentlyLoaded = false;
 
 bool TreeSpecies::operator==(const TreeSpecies &other) const
 {
@@ -131,6 +130,7 @@ void loadCallback(void* userdata, const char * const *filelist, int filter)
     TreeLoadConfig *config = (TreeLoadConfig*) userdata;
     loadConfig(filelist[0], config);
     SDL_free(config);
+    recentlyLoaded = true;
 }
 
 
@@ -239,4 +239,13 @@ void loadConfig(const char *filename, TreeLoadConfig *config)
 double getTimeToLastBuild()
 {
     return timeToLastBuild;
+}
+
+bool getTreeRecentlyLoaded()
+{
+    return recentlyLoaded;
+}
+void clearTreeRecentlyLoaded()
+{
+    recentlyLoaded = false;
 }

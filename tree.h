@@ -49,3 +49,9 @@ void saveCallback(void* userdata, const char * const *filelist, int filter);
 void loadCallback(void* userdata, const char * const *filelist, int filter);
 
 double getTimeToLastBuild();
+
+// The recently loaded variable is set to true when the user loads a new tree.
+// It can be set to false again by calling clearTreeRecentlyLoaded(). This is
+// used for rebuilding the tree when a new species is loaded.
+bool getTreeRecentlyLoaded();
+void clearTreeRecentlyLoaded();
