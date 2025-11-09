@@ -71,7 +71,7 @@ bool Render::Init()
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
     int flags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE;
     
-    window = SDL_CreateWindow("Fractal Tree", 800, 600, flags);
+    window = SDL_CreateWindow("Fractal Tree Creator", 800, 600, flags);
     if (window == NULL) {
         SDL_Log("Couldn't create window: %s", SDL_GetError());
         return false;
