@@ -69,6 +69,9 @@ bool Render::Init()
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
+    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
+
     int flags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE;
     
     window = SDL_CreateWindow("Fractal Tree Creator", 800, 600, flags);
@@ -106,6 +109,8 @@ bool Render::Init()
 
     glViewport(0, 0, 800, 600);
     projection = glm::ortho(0.0f, 800.0f, 0.0f, 600.0f, 0.0f, 2.0f);
+
+    glEnable(GL_MULTISAMPLE);
 
     return true;
 }
