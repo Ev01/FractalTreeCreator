@@ -1,7 +1,6 @@
 #include <SDL3/SDL.h>
 #include "ui.h"
 #include "tree.h"
-#include "debug.h"
 #include "render.h"
 
 #include "../vendored/imgui/imgui.h"
@@ -17,7 +16,7 @@ SDL_DialogFileFilter fileFilters[] = {
 };
 const int numFileFilters = 2;
 
-bool treeConfigWindow(TreeSpecies &species, int &depth, double &sway, SDL_Window *window) {
+bool TreeConfigWindow(TreeSpecies &species, int &depth, double &sway, SDL_Window *window) {
     TreeSpecies beforeSpecies = species;
 
     ImGui::Begin("Tree Config");
@@ -74,7 +73,7 @@ bool treeConfigWindow(TreeSpecies &species, int &depth, double &sway, SDL_Window
         void *dest = SDL_malloc(sizeof(config));
         SDL_memcpy(dest, &config, sizeof(config));
         
-        SDL_ShowSaveFileDialog(saveCallback, dest, window,
+        SDL_ShowSaveFileDialog(SaveCallback, dest, window,
                 fileFilters, numFileFilters, NULL);
         //saveConfig(species, depth, sway);
     }
@@ -86,7 +85,7 @@ bool treeConfigWindow(TreeSpecies &species, int &depth, double &sway, SDL_Window
         void *data = SDL_malloc(sizeof(config));
         SDL_memcpy(data, &config, sizeof(config));
 
-        SDL_ShowOpenFileDialog(loadCallback, data, window,
+        SDL_ShowOpenFileDialog(LoadCallback, data, window,
                 fileFilters, numFileFilters, NULL, false);
     }
     
@@ -97,7 +96,7 @@ bool treeConfigWindow(TreeSpecies &species, int &depth, double &sway, SDL_Window
     return configChanged;
 }
 
-void debugInfoWindow(double delta) {
+void DebugInfoWindow(double delta) {
     ImGui::Begin("Debug");
     ImGui::Text("FPS: %.2f", 1.0 / delta);
 
@@ -106,7 +105,7 @@ void debugInfoWindow(double delta) {
     ImGui::Text("Vertices: %d", treeDrawInfo.verticesSize / 2);
     ImGui::Text("Num Branches: %d", treeDrawInfo.indicesSize / 2);
     ImGui::Text("Indices: %d", treeDrawInfo.indicesSize);
-    ImGui::Text("Time to last build: %.3f", getTimeToLastBuild());
+    ImGui::Text("Time to last build: %.3f", GetTimeToLastBuild());
     //ImGui::Text("Draw calls: %d", (int)Debug_getDrawCalls());
     ImGui::End();
 }

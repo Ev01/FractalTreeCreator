@@ -34,7 +34,7 @@ bool TreeSpecies::operator==(const TreeSpecies &other) const
 }
 
 
-void buildTreeRecursive(const TreeSpecies &species, float *vertices,
+void BuildTreeRecursive(const TreeSpecies &species, float *vertices,
         int &verticesSize, unsigned int *indices, int &indicesSize,
         int baseIndex, double angle, float sway, int maxDepth,
         unsigned int depth)
@@ -94,14 +94,14 @@ void buildTreeRecursive(const TreeSpecies &species, float *vertices,
         indices[indicesSize++] = endIndex;
 
 
-        buildTreeRecursive(species, vertices, verticesSize, indices, 
+        BuildTreeRecursive(species, vertices, verticesSize, indices, 
                 indicesSize, endIndex, branchAngle, sway, maxDepth, newDepth);
 
         //Debug_incDrawCalls();
     }
 }
 
-void buildTree(const TreeSpecies &species, float *vertices, int &verticesSize, 
+void BuildTree(const TreeSpecies &species, float *vertices, int &verticesSize, 
         unsigned int *indices, int &indicesSize, float sway, int maxDepth)
 {
     SDL_assert(species.numBranches <= MAX_NUM_BRANCHES);
@@ -109,32 +109,32 @@ void buildTree(const TreeSpecies &species, float *vertices, int &verticesSize,
     vertices[0] = 0.0;
     vertices[1] = -0.5;
     verticesSize = 2;
-    buildTreeRecursive(species, vertices, verticesSize, indices, indicesSize, 
+    BuildTreeRecursive(species, vertices, verticesSize, indices, indicesSize, 
               0, -SDL_PI_D/2.0, sway, maxDepth, 0);
     Uint64 endTime = SDL_GetTicksNS();
     timeToLastBuild = (double)(endTime - startTime) / SDL_NS_PER_SECOND;
 }
     
 
-void saveCallback(void* userdata, const char * const *filelist, int filter) 
+void SaveCallback(void* userdata, const char * const *filelist, int filter) 
 {
     TreeSaveConfig *config = (TreeSaveConfig*) userdata;
     //SDL_Log("%d", config->depth);
     //SDL_Log("%s", filelist[0]);
-    saveConfig(filelist[0], config->species, config->depth, config->sway);
+    SaveConfig(filelist[0], config->species, config->depth, config->sway);
     SDL_free(config);
 }
 
-void loadCallback(void* userdata, const char * const *filelist, int filter) 
+void LoadCallback(void* userdata, const char * const *filelist, int filter) 
 {
     TreeLoadConfig *config = (TreeLoadConfig*) userdata;
-    loadConfig(filelist[0], config);
+    LoadConfig(filelist[0], config);
     SDL_free(config);
     recentlyLoaded = true;
 }
 
 
-void saveConfig(const char *filename, const TreeSpecies &species, int depth,
+void SaveConfig(const char *filename, const TreeSpecies &species, int depth,
         double sway) 
 {
     SDL_IOStream *user = SDL_IOFromFile(filename, "w");
@@ -170,7 +170,7 @@ void saveConfig(const char *filename, const TreeSpecies &species, int depth,
     SDL_CloseIO(user);
 }
 
-void loadConfig(const char *filename, TreeLoadConfig *config) 
+void LoadConfig(const char *filename, TreeLoadConfig *config) 
 {
     SDL_IOStream *file = SDL_IOFromFile(filename, "r");
     double *sway = config->sway;
@@ -236,16 +236,16 @@ void loadConfig(const char *filename, TreeLoadConfig *config)
 }
 
 
-double getTimeToLastBuild()
+double GetTimeToLastBuild()
 {
     return timeToLastBuild;
 }
 
-bool getTreeRecentlyLoaded()
+bool GetTreeRecentlyLoaded()
 {
     return recentlyLoaded;
 }
-void clearTreeRecentlyLoaded()
+void ClearTreeRecentlyLoaded()
 {
     recentlyLoaded = false;
 }

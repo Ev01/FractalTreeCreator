@@ -15,7 +15,6 @@
 #include "ui.h"
 #include "tree.h"
 #include "render.h"
-#include "debug.h"
 
 #define PROJECT_VERSION "0.1.0a"
 
@@ -30,14 +29,14 @@ static float treeX = 400;
 static float treeY = 20;
 
 
-static void rebuildTree(const TreeSpecies &species, float sway, int maxDepth)
+static void RebuildTree(const TreeSpecies &species, float sway, int maxDepth)
 {
     DrawInfo &treeDrawInfo = Render::GetTreeDrawInfo();
     treeDrawInfo.vertices[0] = 0.0;
     treeDrawInfo.vertices[1] = 0.0;
     treeDrawInfo.verticesSize = 2;
     treeDrawInfo.indicesSize = 0;
-    buildTree(species, treeDrawInfo.vertices, treeDrawInfo.verticesSize,
+    BuildTree(species, treeDrawInfo.vertices, treeDrawInfo.verticesSize,
               treeDrawInfo.indices, treeDrawInfo.indicesSize, sway, maxDepth);
     glBindVertexArray(treeDrawInfo.VAO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(treeDrawInfo.vertices),
@@ -68,7 +67,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
 
     // First build of the tree. Tree will only rebuild again when the
     // configuration changes
-    rebuildTree(species, sway, depth);
+    RebuildTree(species, sway, depth);
 
     lastFrame = SDL_NS_TO_SECONDS((double) SDL_GetTicksNS());
     SDL_Log("Base path:");
@@ -130,25 +129,25 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
     ImGui_ImplSDL3_NewFrame();
     ImGui::NewFrame();
 
-    debugInfoWindow(delta);
+    DebugInfoWindow(delta);
     //Debug_newFrame();
 
     int oldDepth = depth;
     double oldSway = sway;
-    bool configChanged = treeConfigWindow(species, depth, sway, Render::GetWindow())
+    bool configChanged = TreeConfigWindow(species, depth, sway, Render::GetWindow())
         || oldDepth != depth
         || oldSway != sway;
         //|| SDL_fabs(oldSway - sway) > 0.0001;
 
     if (configChanged) {
-        rebuildTree(species, sway, depth);
+        RebuildTree(species, sway, depth);
     }
     // If the user loaded a new tree, rebuild the tree.
-    if (getTreeRecentlyLoaded()) {
-        rebuildTree(species, sway, depth);
+    if (GetTreeRecentlyLoaded()) {
+        RebuildTree(species, sway, depth);
         // Make sure getTreeRecentlyLoaded() will return false until the user
         // loads again
-        clearTreeRecentlyLoaded();
+        ClearTreeRecentlyLoaded();
     }
 
 

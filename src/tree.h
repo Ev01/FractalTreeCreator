@@ -31,27 +31,27 @@ struct TreeLoadConfig {
 
 const TreeSpecies TEST_SPECIES = {2, 0.30, 50, {0, 0}, 1.0, 1.0};
 
-void buildTree(const TreeSpecies &species, float *vertices, int &verticesSize,
+void BuildTree(const TreeSpecies &species, float *vertices, int &verticesSize,
         unsigned int *indices, int &indicesSize, float sway, int maxDepth);
 
-void buildTreeRecursive(const TreeSpecies &species, float *vertices, 
+void BuildTreeRecursive(const TreeSpecies &species, float *vertices, 
                int &verticesSize, unsigned int *indices, int &indicesSize, 
                int baseIndex, double angle, float sway, int maxDepth,
                unsigned int depth);
 
-void saveConfig(const char *filename, const TreeSpecies &species, int depth,
+void SaveConfig(const char *filename, const TreeSpecies &species, int depth,
                 double sway);
-void loadConfig(const char *filename, TreeLoadConfig *config);
+void LoadConfig(const char *filename, TreeLoadConfig *config);
 
 /* Used with SDL_ShowSaveFileDialog to save to file */
-void saveCallback(void* userdata, const char * const *filelist, int filter);
+void SaveCallback(void* userdata, const char * const *filelist, int filter);
 /* Used with SDL_ShowOpenFileDialog to load from file */
-void loadCallback(void* userdata, const char * const *filelist, int filter);
+void LoadCallback(void* userdata, const char * const *filelist, int filter);
 
-double getTimeToLastBuild();
+double GetTimeToLastBuild();
 
 // The recently loaded variable is set to true when the user loads a new tree.
 // It can be set to false again by calling clearTreeRecentlyLoaded(). This is
 // used for rebuilding the tree when a new species is loaded.
-bool getTreeRecentlyLoaded();
-void clearTreeRecentlyLoaded();
+bool GetTreeRecentlyLoaded();
+void ClearTreeRecentlyLoaded();
