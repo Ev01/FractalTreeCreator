@@ -43,6 +43,7 @@ static void RebuildTree(const TreeSpecies &species, float sway, int maxDepth)
                  treeDrawInfo.vertices, GL_DYNAMIC_DRAW);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(treeDrawInfo.indices),
                  treeDrawInfo.indices, GL_DYNAMIC_DRAW);
+    glBindVertexArray(0);
     //SDL_Log("Rebuild, %d indices (lines), %d vertices (Points)", 
     //        treeDrawInfo.indicesSize, treeDrawInfo.verticesSize);
 }
