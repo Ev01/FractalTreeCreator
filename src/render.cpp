@@ -17,8 +17,6 @@ SDL_GLContext context;
 
 DrawInfo treeDrawInfo;
 
-unsigned int vertexShader;
-unsigned int fragmentShader;
 unsigned int shaderProgram;
 unsigned int screenProg;
 glm::mat4 projection;
@@ -42,6 +40,9 @@ unsigned int screenQuadVAO;
 
 int screenWidth = 800;
 int screenHeight = 600;
+
+unsigned int msaaSamples = 8;
+int maxSamples, maxColourTextureSamples;
 
 static unsigned int CreateShaderFromFile(const char *filename, GLenum shaderType)
 {
@@ -85,25 +86,92 @@ static unsigned int CreateProgramFromShaders(unsigned int* shaders, unsigned int
 }
 
 
-static void CreateMSFramebuffer(int samples=8)
+static void CreateMSFramebuffer()
 {
     glGenFramebuffers(1, &fbo);
     glBindFramebuffer(GL_FRAMEBUFFER, fbo);
     // Create texture for framebuffer
     glGenTextures(1, &fboTexture);
     glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, fboTexture);
-    glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, samples, GL_RGB, 
+    glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, msaaSamples, GL_RGB, 
                             screenWidth, screenHeight, GL_TRUE);
+    GLERR;
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     // Bind texture to framebuffer
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, 
                            GL_TEXTURE_2D_MULTISAMPLE, fboTexture, 0);
     // Check if framebuffer was created properly
-    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-        SDL_Log("Error: Framebuffer is not complete!");
+    unsigned int status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+    if (status != GL_FRAMEBUFFER_COMPLETE) {
+        SDL_Log("Error: Framebuffer is not complete! status %x", status);
     }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+
+static void RecreateMSFramebuffer()
+{
+    glDeleteFramebuffers(1, &fbo);
+    glDeleteTextures(1, &fboTexture);
+    CreateMSFramebuffer();
+}
+
+
+/* Generate screen quad vertex array object */
+static void CreateQuadVAO()
+{
+    glGenVertexArrays(1, &screenQuadVAO);
+    glGenBuffers(1, &screenQuadVBO);
+
+    glBindVertexArray(screenQuadVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, screenQuadVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(screenQuad), &screenQuad, GL_STATIC_DRAW);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float)*4, (void*)0);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(float)*4, (void*)(sizeof(float)*2));
+    glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(1);
+    glBindVertexArray(0);
+}
+
+/* Generate Vertex Array Object to store the tree's draw info. */
+static void InitTreeDrawInfoVAO()
+{
+    glGenVertexArrays(1, &(treeDrawInfo.VAO));
+    glGenBuffers(1, &(treeDrawInfo.VBO));
+    glGenBuffers(1, &(treeDrawInfo.EBO));
+
+    glBindVertexArray(treeDrawInfo.VAO);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, treeDrawInfo.EBO);
+    glBindBuffer(GL_ARRAY_BUFFER, treeDrawInfo.VBO);
+    /*
+    glBufferData(GL_ARRAY_BUFFER, sizeof(treeDrawInfo.vertices),
+                 treeDrawInfo.vertices, GL_DYNAMIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(treeDrawInfo.indices),
+                 treeDrawInfo.indices, GL_DYNAMIC_DRAW);
+    */
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float)*2, (void*)0);
+    glEnableVertexAttribArray(0);
+    glBindVertexArray(0);
+}
+
+static void LoadShaders()
+{
+    unsigned int vertexShader = CreateShaderFromFile("shaders/vertex.glsl", GL_VERTEX_SHADER);
+    unsigned int fragmentShader = CreateShaderFromFile("shaders/fragment.glsl", GL_FRAGMENT_SHADER);
+    unsigned int shaders[2] = {vertexShader, fragmentShader};
+    shaderProgram = CreateProgramFromShaders(shaders, 2);
+    projectionLoc = glGetUniformLocation(shaderProgram, "projection");
+    viewLoc = glGetUniformLocation(shaderProgram, "view");
+    glDeleteShader(vertexShader);
+    glDeleteShader(fragmentShader);
+    
+    unsigned int vScreenShader = CreateShaderFromFile("shaders/v_screen.glsl", GL_VERTEX_SHADER);
+    unsigned int fScreenShader = CreateShaderFromFile("shaders/f_screen.glsl", GL_FRAGMENT_SHADER);
+    unsigned int screenShaders[2] = {vScreenShader, fScreenShader};
+    screenProg = CreateProgramFromShaders(screenShaders, 2);
+    glDeleteShader(vScreenShader);
+    glDeleteShader(fScreenShader);
 }
 
 
@@ -130,61 +198,20 @@ bool Render::Init()
         return false;
     }
 
-    // Generate screen quad vertex array object
-    glGenVertexArrays(1, &screenQuadVAO);
-    glGenBuffers(1, &screenQuadVBO);
-
-    glBindVertexArray(screenQuadVAO);
-    glBindBuffer(GL_ARRAY_BUFFER, screenQuadVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(screenQuad), &screenQuad, GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float)*4, (void*)0);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(float)*4, (void*)(sizeof(float)*2));
-    glEnableVertexAttribArray(0);
-    glEnableVertexAttribArray(1);
-    glBindVertexArray(0);
-
-    // Generate Vertex Array Object to store the tree's draw info.
-    glGenVertexArrays(1, &(treeDrawInfo.VAO));
-    glGenBuffers(1, &(treeDrawInfo.VBO));
-    glGenBuffers(1, &(treeDrawInfo.EBO));
-
-    glBindVertexArray(treeDrawInfo.VAO);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, treeDrawInfo.EBO);
-    glBindBuffer(GL_ARRAY_BUFFER, treeDrawInfo.VBO);
-    /*
-    glBufferData(GL_ARRAY_BUFFER, sizeof(treeDrawInfo.vertices),
-                 treeDrawInfo.vertices, GL_DYNAMIC_DRAW);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(treeDrawInfo.indices),
-                 treeDrawInfo.indices, GL_DYNAMIC_DRAW);
-    */
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float)*2, (void*)0);
-    glEnableVertexAttribArray(0);
-    glBindVertexArray(0);
-
-    // Load shaders
-    vertexShader = CreateShaderFromFile("shaders/vertex.glsl", GL_VERTEX_SHADER);
-    fragmentShader = CreateShaderFromFile("shaders/fragment.glsl", GL_FRAGMENT_SHADER);
-    unsigned int shaders[2] = {vertexShader, fragmentShader};
-    shaderProgram = CreateProgramFromShaders(shaders, 2);
-    projectionLoc = glGetUniformLocation(shaderProgram, "projection");
-    viewLoc = glGetUniformLocation(shaderProgram, "view");
-    
-    unsigned int vScreenShader = CreateShaderFromFile("shaders/v_screen.glsl", GL_VERTEX_SHADER);
-    unsigned int fScreenShader = CreateShaderFromFile("shaders/f_screen.glsl", GL_FRAGMENT_SHADER);
-    unsigned int shaders2[2] = {vScreenShader, fScreenShader};
-    screenProg = CreateProgramFromShaders(shaders2, 2);
-    glDeleteShader(vScreenShader);
-    glDeleteShader(fScreenShader);
-    
-
-    // Create Framebuffer
+    LoadShaders();   
     CreateMSFramebuffer();
-    
+    CreateQuadVAO();
+    InitTreeDrawInfoVAO();
 
     glViewport(0, 0, screenWidth, screenHeight);
     projection = glm::ortho(0.0f, (float)screenWidth, 0.0f, (float)screenHeight, 0.0f, 2.0f);
 
     glEnable(GL_MULTISAMPLE);
+    // Get how many samples the GPU supports (for MSAA).
+    glGetIntegerv(GL_MAX_SAMPLES, &maxSamples);
+    glGetIntegerv(GL_MAX_COLOR_TEXTURE_SAMPLES, &maxColourTextureSamples);
+    SDL_Log("Max MSAA samples: %d", maxSamples);
+    SDL_Log("Max MSAA colour texture samples: %d", maxColourTextureSamples);
 
     return true;
 }
@@ -198,9 +225,7 @@ void Render::UpdateViewportSize(float width, float height)
     screenHeight = (int)height;
 
     // Recreate framebuffer to use new screen size
-    glDeleteFramebuffers(1, &fbo);
-    glDeleteTextures(1, &fboTexture);
-    CreateMSFramebuffer();
+    RecreateMSFramebuffer();
 }
 
 
@@ -268,8 +293,21 @@ void Render::CleanUp()
 {
     glDeleteFramebuffers(1, &fbo);
     glDeleteTextures(1, &fboTexture);
-    glDeleteShader(vertexShader);
-    glDeleteShader(fragmentShader);
     glDeleteProgram(shaderProgram);
     glDeleteProgram(screenProg);
+}
+
+
+unsigned int Render::GetMSAASamples() { return msaaSamples; }
+
+void Render::SetMSAASamples(unsigned int samples) 
+{
+    if (msaaSamples != samples) {
+        if (samples > maxColourTextureSamples) {
+            SDL_Log("Your GPU does not support this quality of anti-aliasing!");
+            return;
+        }
+        msaaSamples = samples; 
+        RecreateMSFramebuffer();
+    }
 }

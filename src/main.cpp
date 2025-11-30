@@ -131,6 +131,7 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
     ImGui::NewFrame();
 
     DebugInfoWindow(delta);
+    RenderSettingsWindow();
     //Debug_newFrame();
 
     int oldDepth = depth;

@@ -27,4 +27,7 @@ namespace Render {
     SDL_Window* GetWindow();
     SDL_GLContext& GetGLContext();
     void CleanUp();
+
+    unsigned int GetMSAASamples();
+    void SetMSAASamples(unsigned int samples);
 };

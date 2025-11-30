@@ -109,3 +109,30 @@ void DebugInfoWindow(double delta) {
     //ImGui::Text("Draw calls: %d", (int)Debug_getDrawCalls());
     ImGui::End();
 }
+
+void RenderSettingsWindow()
+{
+    ImGui::Begin("Render Settings");
+
+    const char *sampleOptions[] = {"Disabled", "4x MSAA", "8x MSAA", "16x MSAA"};
+    int currentSampleOption = 0;
+    int samples = Render::GetMSAASamples();
+    switch (samples) {
+        case 1:  currentSampleOption = 0; break;
+        case 4:  currentSampleOption = 1; break;
+        case 8:  currentSampleOption = 2; break;
+        case 16: currentSampleOption = 3; break;
+    }
+    
+    ImGui::Combo("Anti-Aliasing", &currentSampleOption, sampleOptions, 4);
+    switch (currentSampleOption) {
+        case 0: samples = 1;  break;
+        case 1: samples = 4;  break;
+        case 2: samples = 8;  break;
+        case 3: samples = 16; break;
+    }
+    Render::SetMSAASamples(samples);
+
+
+    ImGui::End();
+}
