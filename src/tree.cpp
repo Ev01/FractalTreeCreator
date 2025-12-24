@@ -11,6 +11,8 @@ using json = nlohmann::json;
 double timeToLastBuild = 0.0;
 bool recentlyLoaded = false;
 
+
+
 bool TreeSpecies::operator==(const TreeSpecies &other) const
 {
     //double err = 0.0001;
@@ -100,6 +102,10 @@ void BuildTreeRecursive(const TreeSpecies &species, float *vertices,
         //Debug_incDrawCalls();
     }
 }
+
+
+
+
 
 void BuildTree(const TreeSpecies &species, float *vertices, int &verticesSize, 
         unsigned int *indices, int &indicesSize, float sway, int maxDepth)

@@ -16,6 +16,16 @@ struct TreeSpecies {
     bool operator==(const TreeSpecies &other) const;
 };
 
+struct TreeBuildInfo {
+    TreeSpecies species;
+    float *vertices;
+    int verticesSize;
+    unsigned int *indices;
+    int indicesSize;
+    float sway;
+    int maxDepth;
+};
+
 struct TreeSaveConfig {
     TreeSpecies species;
     int depth;
@@ -29,7 +39,10 @@ struct TreeLoadConfig {
     double *sway;
 };
 
+
 const TreeSpecies TEST_SPECIES = {2, 0.30, 50, {0, 0}, 1.0, 1.0};
+extern SDL_Mutex *buildingMutex;
+extern SDL_Condition *shouldBuildCond;
 
 void BuildTree(const TreeSpecies &species, float *vertices, int &verticesSize,
         unsigned int *indices, int &indicesSize, float sway, int maxDepth);

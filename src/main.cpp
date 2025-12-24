@@ -14,6 +14,7 @@
 
 #include "ui.h"
 #include "tree.h"
+#include "tree_thread.h"
 #include "render.h"
 
 #define PROJECT_VERSION "0.1.0a"
@@ -28,6 +29,21 @@ static double sway = 0;
 static float treeX = 400;
 static float treeY = 20;
 
+SDL_Thread *treeBuildThread;
+TreeBuildInfo treeBuildInfo;
+int buildIndicesSize = 0;
+bool hasConfigChangedSinceLastRebuild = false;
+
+static void UpdateGPUBuffers()
+{
+    DrawInfo &treeDrawInfo = Render::GetTreeDrawInfo();
+    glBindVertexArray(treeDrawInfo.VAO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(treeDrawInfo.vertices),
+                 treeDrawInfo.vertices, GL_DYNAMIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(treeDrawInfo.indices),
+                 treeDrawInfo.indices, GL_DYNAMIC_DRAW);
+    glBindVertexArray(0);
+}
 
 static void RebuildTree(const TreeSpecies &species, float sway, int maxDepth)
 {
@@ -48,11 +64,49 @@ static void RebuildTree(const TreeSpecies &species, float sway, int maxDepth)
     //        treeDrawInfo.indicesSize, treeDrawInfo.verticesSize);
 }
 
+static void RebuildTreeMultithread()
+{
+    SDL_Log("Rebuild multithread");
+    DrawInfo &treeDrawInfo = Render::GetTreeDrawInfo();
+    treeDrawInfo.vertices[0] = 0.0;
+    treeDrawInfo.vertices[1] = 0.0;
+    buildIndicesSize = 0;
+
+    SDL_LockMutex(buildingMutex);
+    treeBuildInfo.species = species;
+    treeBuildInfo.vertices = treeDrawInfo.vertices;
+    treeBuildInfo.verticesSize = treeDrawInfo.verticesSize;
+    treeBuildInfo.indices = treeDrawInfo.indices;
+    treeBuildInfo.indicesSize = buildIndicesSize;
+    treeBuildInfo.sway = sway;
+    treeBuildInfo.maxDepth = depth;
+    SDL_UnlockMutex(buildingMutex);
+    BuildTreeMultithread(&treeBuildInfo);
+
+    //BuildTree(species, treeDrawInfo.vertices, treeDrawInfo.verticesSize,
+    //          treeDrawInfo.indices, treeDrawInfo.indicesSize, sway, maxDepth);
+    /*
+    glBindVertexArray(treeDrawInfo.VAO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(treeDrawInfo.vertices),
+                 treeDrawInfo.vertices, GL_DYNAMIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(treeDrawInfo.indices),
+                 treeDrawInfo.indices, GL_DYNAMIC_DRAW);
+    glBindVertexArray(0);
+    */
+}
+
 SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
     SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMEPAD);
     SDL_SetAppMetadata("Fractal Tree Creator", PROJECT_VERSION, "com.evanbarac.fractaltree");
 
     Render::Init();
+
+    InitTreeBuildMutexes();
+    treeBuildThread = SDL_CreateThread(TreeBuildThread, "tree", NULL);
+    if (treeBuildThread == NULL) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "SDL_CreateThread failed: %s", SDL_GetError());
+        return SDL_APP_FAILURE;
+    }
 
     // Initiate IMGUI
     IMGUI_CHECKVERSION();
@@ -68,7 +122,8 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
 
     // First build of the tree. Tree will only rebuild again when the
     // configuration changes
-    RebuildTree(species, sway, depth);
+    //RebuildTree(species, sway, depth);
+    RebuildTreeMultithread();
 
     lastFrame = SDL_NS_TO_SECONDS((double) SDL_GetTicksNS());
     SDL_Log("Base path:");
@@ -142,11 +197,17 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
         //|| SDL_fabs(oldSway - sway) > 0.0001;
 
     if (configChanged) {
-        RebuildTree(species, sway, depth);
+        hasConfigChangedSinceLastRebuild = true;
+    }
+    if (hasConfigChangedSinceLastRebuild && !JustFinishedBuilding() && !IsCurrentlyBuildingTree()) {
+        //RebuildTree(species, sway, depth);
+        RebuildTreeMultithread();
+        hasConfigChangedSinceLastRebuild = false;
     }
     // If the user loaded a new tree, rebuild the tree.
     if (GetTreeRecentlyLoaded()) {
-        RebuildTree(species, sway, depth);
+        //RebuildTree(species, sway, depth);
+        RebuildTreeMultithread();
         // Make sure getTreeRecentlyLoaded() will return false until the user
         // loads again
         ClearTreeRecentlyLoaded();
@@ -164,6 +225,16 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
 
     ImGui::Render();
 
+    if (JustFinishedBuilding()) {
+        DrawInfo &treeDrawInfo = Render::GetTreeDrawInfo();
+        SDL_LockMutex(buildingMutex);
+        treeDrawInfo.verticesSize = treeBuildInfo.verticesSize;
+        treeDrawInfo.indicesSize = treeBuildInfo.indicesSize;
+        SDL_UnlockMutex(buildingMutex);
+        UpdateGPUBuffers();
+        ClearJustFinishedBuilding();
+    }
+
     Render::DrawFrame((int)treeX, (int)treeY, species.baseBranchLen);
 
     return SDL_APP_CONTINUE;
@@ -172,6 +243,9 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
 
 void SDL_AppQuit(void *appstate, SDL_AppResult result) {
     Render::CleanUp();
+    QuitTreeBuildThread();
+    SDL_WaitThread(treeBuildThread, NULL);
+    DeleteTreeBuildMutexes();
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplSDL3_Shutdown();
     ImGui::DestroyContext();

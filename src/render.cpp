@@ -268,7 +268,6 @@ void Render::DrawFrame(int treeX, int treeY, float zoom)
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     glDrawArrays(GL_TRIANGLES, 0, 6);
     */
-    
 
 
     SDL_GL_SwapWindow(window);

@@ -22,6 +22,7 @@ target_sources(fractal_tree
 PRIVATE
     src/main.cpp
     src/tree.cpp
+    src/tree_thread.cpp
     src/ui.cpp
     src/debug.cpp
     src/render.cpp
